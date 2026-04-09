@@ -86,6 +86,7 @@
     .tags-container::-webkit-scrollbar { display: none; }
     .btn-tag { flex: 1; min-width: max-content; padding: 10px 15px; border: var(--border-dashed); background: #fff; font-weight: 900; font-size: 0.75rem; cursor: pointer; box-shadow: var(--shadow-sm); text-transform: uppercase; transition: 0.2s;}
     
+    /* Cores ativas das tags */
     .btn-tag.tag-all.active { background: var(--color-melancholy-love); color: #000; border: var(--border); }
     .btn-tag.tag-melancholy.active { background: var(--color-melancholy); color: #fff; border: var(--border); }
     .btn-tag.tag-love.active { background: var(--color-love); color: #fff; border: var(--border); }
@@ -187,25 +188,21 @@
 
   <div id="view-disco" class="view-section container">
     <h3 class="section-title">Discografia <i class="fas fa-compact-disc"></i></h3>
-    
     <div class="tags-container">
       <button class="btn-tag tag-all active" onclick="setUnitFilter('All')">Melancholy Love <i class="fas fa-heart"></i></button>
       <button class="btn-tag tag-melancholy" onclick="setUnitFilter('Melancholy')">Melancholy <i class="fas fa-skull"></i></button>
       <button class="btn-tag tag-love" onclick="setUnitFilter('Love')">Love <i class="fas fa-heart"></i></button>
     </div>
-
     <div id="disco-grid" class="grid-2"></div>
   </div>
 
   <div id="view-members" class="view-section container">
     <h3 class="section-title">Membros <i class="fas fa-skull"></i></h3>
-    
     <div class="tags-container">
       <button class="btn-tag tag-all active" onclick="setUnitFilter('All')">Melancholy Love <i class="fas fa-heart"></i></button>
       <button class="btn-tag tag-melancholy" onclick="setUnitFilter('Melancholy')">Melancholy <i class="fas fa-skull"></i></button>
       <button class="btn-tag tag-love" onclick="setUnitFilter('Love')">Love <i class="fas fa-heart"></i></button>
     </div>
-    
     <div id="members-container"></div>
   </div>
 
@@ -268,7 +265,6 @@
   </div>
 
   <script>
-    // --- SUPABASE SETUP ---
     var supaUrl = 'https://cotzdfxjazojpwpmkoss.supabase.co';
     var supaKey = 'sb_publishable_vF3JVZw3vDrfLM5M6xtw_w_0VJh7uwm';
     var db = window.supabase.createClient(supaUrl, supaKey);
@@ -283,7 +279,7 @@
         let cleanName = name.replace(/<[^>]*>?/gm, '').trim().substring(0,3).toUpperCase();
         return `https://ui-avatars.com/api/?name=${encodeURIComponent(cleanName)}&background=${hexCol}&color=111&size=200&font-size=0.33&bold=true`;
     };
-
+    
     async function init() {
       try {
         const [memRes, discRes, newsRes, stageRes, banRes] = await Promise.all([
@@ -303,32 +299,78 @@
       } catch (e) {
         console.warn("Falha no DB.");
       } finally {
-        renderDynamicHero(); renderNews();
-        setUnitFilter('All'); renderStagesList();
+        renderDynamicHero();
+        renderNews(loadedNews);
+        setUnitFilter('All'); 
+        renderStagesList();
       }
     }
 
-    function switchView(id, el) { document.querySelectorAll(".view-section").forEach(v => v.classList.remove("active")); document.querySelectorAll(".nav-item").forEach(n => n.classList.remove("active")); document.getElementById(id).classList.add("active"); el.classList.add("active"); window.scrollTo(0,0); }
-    function renderDynamicHero() { const wrapper = document.getElementById("hero-media-wrapper"); let b = loadedBanner; if(!b) return; document.getElementById("hero-title").innerHTML = b.titulo; document.getElementById("hero-sub").innerHTML = b.subtitulo; if(b.tag) document.getElementById("hero-tag").innerHTML = b.tag; wrapper.innerHTML = `<img class="hero-media" src="${b.url_midia}">`; }
-    function renderNews() { document.getElementById("news-list").innerHTML = loadedNews.map((n, i) => { const d = (n.Data||"").split("-"); return `<div class="card" style="display:flex; align-items:center; gap:15px;"><div style="text-align:center; min-width:50px; border-right:3px dashed #000; padding-right:15px;"><b style="font-size:1.5rem; color:var(--primary); -webkit-text-stroke:1px #000;">${d[2]||'00'}</b><br><span style="font-size:0.7rem; font-weight:900;">${d[1]||'00'}/${d[0]||'00'}</span></div><div><span class="tag" style="font-size:0.6rem; padding:2px 5px;">${n.Categoria}</span><h4 style="font-size:0.9rem; text-transform:uppercase;">${n.Titulo}</h4></div></div>`; }).join(''); }
-    
-    function setUnitFilter(unit) {
-      currentUnitFilter = unit;
-      let tagClass = unit === 'All' ? 'tag-all' : 'tag-' + unit.toLowerCase();
-      document.querySelectorAll(".btn-tag").forEach(b => { b.classList.remove("active"); if (b.classList.contains(tagClass)) b.classList.add("active"); });
-
-      const root = document.documentElement;
-      if(unit === 'Melancholy') { root.style.setProperty('--primary', 'var(--color-melancholy)'); root.style.setProperty('--primary-light', '#D8BFD8'); document.body.classList.remove('fx-flash-love', 'fx-flash-melancholy', 'fx-flash-all'); void document.body.offsetWidth; document.body.classList.add('fx-flash-melancholy'); updateNavTextColor(false); } 
-      else if (unit === 'Love') { root.style.setProperty('--primary', 'var(--color-love)'); root.style.setProperty('--primary-light', '#FFCCCC'); document.body.classList.remove('fx-flash-love', 'fx-flash-melancholy', 'fx-flash-all'); void document.body.offsetWidth; document.body.classList.add('fx-flash-love'); updateNavTextColor(false); } 
-      else { root.style.setProperty('--primary', 'var(--color-melancholy-love)'); root.style.setProperty('--primary-light', '#FFB6C1'); document.body.classList.remove('fx-flash-love', 'fx-flash-melancholy', 'fx-flash-all'); void document.body.offsetWidth; document.body.classList.add('fx-flash-all'); updateNavTextColor(true); }
-      
-      renderMembers(); renderDisco();
+    function switchView(id, el) { 
+      document.querySelectorAll(".view-section").forEach(v => v.classList.remove("active")); 
+      document.querySelectorAll(".nav-item").forEach(n => n.classList.remove("active")); 
+      document.getElementById(id).classList.add("active"); 
+      el.classList.add("active"); 
+      window.scrollTo(0,0); 
     }
 
-    function updateNavTextColor(isPink) { document.querySelectorAll(".nav-item").forEach(n => { if(isPink) n.classList.add("black-text"); else n.classList.remove("black-text"); }); }
+    function renderDynamicHero() { const wrapper = document.getElementById("hero-media-wrapper"); let b = loadedBanner; if(!b) return; document.getElementById("hero-title").innerHTML = b.titulo; document.getElementById("hero-sub").innerHTML = b.subtitulo; if(b.tag) document.getElementById("hero-tag").innerHTML = b.tag; wrapper.innerHTML = `<img class="hero-media" src="${b.url_midia}">`; }
+    function renderNews(list) { document.getElementById("news-list").innerHTML = list.slice(0,10).map(n => { const d = (n.Data||"").split("-"); return `<div class="card" style="display:flex; align-items:center; gap:15px;"><div style="text-align:center; min-width:50px; border-right:3px dashed #000; padding-right:15px;"><b style="font-size:1.5rem; color:var(--primary); -webkit-text-stroke:1px #000;">${d[2]||'00'}</b><br><span style="font-size:0.7rem; font-weight:900;">${d[1]||'00'}/${d[0]||'00'}</span></div><div><span class="tag" style="font-size:0.6rem; padding:2px 5px;">${n.Categoria}</span><h4 style="font-size:0.9rem; text-transform:uppercase;">${n.Titulo}</h4></div></div>`; }).join(''); }
+    
+    function getTracklistJSON(d) {
+        if (!d || !d.Tracklist) return null;
+        if (typeof d.Tracklist === 'string') {
+            if (d.Tracklist.includes('ctl48-formation-data')) {
+                const temp = document.createElement("div"); temp.innerHTML = d.Tracklist; 
+                const jsonEl = temp.querySelector("#ctl48-formation-data"); 
+                if(jsonEl) { try { return JSON.parse(jsonEl.textContent.trim()); } catch(e){ return null; } }
+            }
+            try { return JSON.parse(d.Tracklist); } catch(e) { return null; }
+        }
+        return d.Tracklist;
+    }
+
+    function setUnitFilter(unit) {
+      currentUnitFilter = unit;
+      
+      let tagClass = unit === 'All' ? 'tag-all' : 'tag-' + unit.toLowerCase();
+      document.querySelectorAll(".btn-tag").forEach(b => {
+          b.classList.remove("active");
+          if (b.classList.contains(tagClass)) b.classList.add("active");
+      });
+
+      const root = document.documentElement;
+
+      if(unit === 'Melancholy') {
+          root.style.setProperty('--primary', 'var(--color-melancholy)'); root.style.setProperty('--primary-light', '#D8BFD8'); 
+          document.body.classList.remove('fx-flash-love', 'fx-flash-melancholy', 'fx-flash-all'); void document.body.offsetWidth; 
+          document.body.classList.add('fx-flash-melancholy'); updateNavTextColor(false);
+      } else if (unit === 'Love') {
+          root.style.setProperty('--primary', 'var(--color-love)'); root.style.setProperty('--primary-light', '#FFCCCC'); 
+          document.body.classList.remove('fx-flash-love', 'fx-flash-melancholy', 'fx-flash-all'); void document.body.offsetWidth;
+          document.body.classList.add('fx-flash-love'); updateNavTextColor(false);
+      } else {
+          root.style.setProperty('--primary', 'var(--color-melancholy-love)'); root.style.setProperty('--primary-light', '#FFB6C1'); 
+          document.body.classList.remove('fx-flash-love', 'fx-flash-melancholy', 'fx-flash-all'); void document.body.offsetWidth;
+          document.body.classList.add('fx-flash-all'); updateNavTextColor(true); 
+      }
+      
+      renderMembers();
+      renderDisco();
+    }
+
+    function updateNavTextColor(isPink) {
+      document.querySelectorAll(".nav-item").forEach(n => {
+        if(isPink) n.classList.add("black-text");
+        else n.classList.remove("black-text");
+      });
+    }
 
     function renderDisco() { 
-      const grid = document.getElementById("disco-grid"); grid.innerHTML = ""; let count = 0;
+      const grid = document.getElementById("disco-grid");
+      grid.innerHTML = "";
+      
+      let count = 0;
       loadedDiscos.forEach((d, idx) => {
         let unitOfDisco = d.Unit || 'All';
         
@@ -345,23 +387,37 @@
           <div class="item-name">${d.Titulo || d.titulo}</div>
         </div>`;
       }); 
-      if(count === 0) grid.innerHTML = `<div style="grid-column: 1 / -1; text-align: center; padding: 20px; font-weight: 900; color: #666;">Nenhum lançamento encontrado.</div>`;
+
+      if(count === 0) {
+        grid.innerHTML = `<div style="grid-column: 1 / -1; text-align: center; padding: 20px; font-weight: 900; color: #666;">Nenhum lançamento encontrado.</div>`;
+      }
     }
 
     function renderMembers() { 
-      const container = document.getElementById("members-container"); container.innerHTML = ""; const groups = {}; 
+      const container = document.getElementById("members-container"); 
+      container.innerHTML = ""; 
+      
+      const groups = {}; 
       loadedMembers.forEach((m, idx) => { 
         if(['graduada','demitida'].includes((m.Status||m.status)?.toLowerCase())) return; 
         const key = currentUnitFilter === 'All' ? (m.Geracao || m.geracao || "1ª Geração") : (m.SubUnit || m.subunit || "Outros"); 
+        
         if(currentUnitFilter !== 'All' && key !== currentUnitFilter) return;
-        if(!groups[key]) groups[key] = []; m._idx = idx; groups[key].push(m); 
+        
+        if(!groups[key]) groups[key] = []; 
+        m._idx = idx; 
+        groups[key].push(m); 
       }); 
+      
       const orderMap = {"1ª Geração": 0, "2ª Geração": 1, "Love": 2, "Melancholy": 3};
-      Object.keys(groups).sort((a, b) => (orderMap[a] || 99) - (orderMap[b] || 99)).forEach(key => { 
+      const keys = Object.keys(groups).sort((a, b) => (orderMap[a] || 99) - (orderMap[b] || 99)); 
+      
+      keys.forEach(key => { 
         let themeColor = 'var(--color-melancholy-love)'; let sectionTitle = `<i class="fas fa-star"></i> ${key}`; let textColor = '#fff';
         if (key === 'Melancholy') { themeColor = 'var(--color-melancholy)'; sectionTitle = `SUB UNIT: ${key}`; } 
         else if (key === 'Love') { themeColor = 'var(--color-love)'; sectionTitle = `SUB UNIT: ${key}`; } 
         else if (currentUnitFilter === 'All') { themeColor = 'var(--black)'; textColor = 'var(--color-melancholy-love)'; }
+        
         container.innerHTML += `<div>
           <h4 class="section-title" style="margin-top:20px; background:${themeColor}; color:${textColor};">${sectionTitle}</h4>
           <div class="grid-3">
@@ -386,16 +442,57 @@
       document.getElementById("m-bio").innerHTML = (m.Perfil || m.perfil) || "Sem bio.";
       
       let th = []; try { th = JSON.parse(m.Historico_Times || m.historico_times || "[]"); } catch(e){}
+      
       const mm = { 'Jan':1, 'Fev':2, 'Mar':3, 'Abr':4, 'Mai':5, 'Jun':6, 'Jul':7, 'Ago':8, 'Set':9, 'Out':10, 'Nov':11, 'Dez':12 };
-      th.sort((a,b) => { let aP=(a.data||'').split(' '), bP=(b.data||'').split(' '); let yA=parseInt(aP[1])||0, yB=parseInt(bP[1])||0; return yA!==yB ? yB-yA : (mm[bP[0]]||0) - (mm[aP[0]]||0); });
+      th.sort((a,b) => {
+          let aP=(a.data||'').split(' '), bP=(b.data||'').split(' ');
+          let yA=parseInt(aP[1])||0, yB=parseInt(bP[1])||0;
+          return yA!==yB ? yB-yA : (mm[bP[0]]||0) - (mm[aP[0]]||0);
+      });
 
       const histEl = document.getElementById("m-history-timeline");
       if(th.length === 0) histEl.innerHTML = `<div style="color:#000; font-size:0.8rem; font-weight:bold;">Nenhum registro.</div>`;
       else histEl.innerHTML = th.map(h => `<div class="team-history-item"><span class="team-history-date">${h.data}</span><br>${h.para}</div>`).join('');
 
-      let parts = typeof (m.Participacoes||m.participacoes) === "string" ? JSON.parse(m.Participacoes||m.participacoes || "[]") : (m.Participacoes||m.participacoes); if (!Array.isArray(parts)) parts = []; const discoMap = {}; loadedDiscos.forEach(d => { discoMap[d.Titulo||d.titulo] = d.id || 0; }); parts.sort((a, b) => { const titleA = typeof a === 'string' ? a.split(':')[0] : (a.single || ''); const titleB = typeof b === 'string' ? b.split(':')[0] : (b.single || ''); return (discoMap[titleA] || 99999) - (discoMap[titleB] || 99999); });
-      const partsHTML = parts.map(p => { if (typeof p === 'string') return `<div class="part-card"><div class="part-row" style="font-weight:700;">${p}</div></div>`; const rawTracks = p.tracks || []; const tracks = Array.isArray(rawTracks) ? rawTracks : [rawTracks]; const rows = tracks.map(t => { if (!t) return ""; const labels = t.labels || []; const badges = Array.isArray(labels) ? labels.map(l => { const slug = String(l).toLowerCase(); let cls = ''; let icon = 'fa-tag'; if(slug.includes('a-side') || slug==='aside') { cls='is-aside'; icon='fa-star'; } else if(slug.includes('b-side') || slug==='bside') { cls='is-bside'; icon='fa-compact-disc'; } else if(slug.includes('center')) { cls='is-center'; icon='fa-crown'; } else if(slug.includes('unit')) { cls='is-unit'; icon='fa-users'; } return `<span class="label-brat ${cls}"><i class="fas ${icon}"></i> ${l}</span>`; }).join('') : ''; return `<div class="part-row"><span>${t.title || 'Música'}</span><div>${badges}</div></div>`; }).join(''); return `<div class="part-card"><div class="part-header">${p.single || 'Single'}</div>${rows}</div>`; }).join('');
-      document.getElementById("m-part").innerHTML = partsHTML || '<p style="text-align:center; font-weight:bold; padding:20px;">Nenhuma música registrada.</p>'; switchTabModal('perfil', document.querySelector('#member-modal .tab-btn')); document.getElementById("member-modal").classList.add("active");
+      // INTEGRAÇÃO AUTOMÁTICA DE PARTICIPAÇÕES
+      let autoParts = [];
+      loadedDiscos.forEach(d => {
+          let fJSON = getTracklistJSON(d);
+          let tracksInDisco = [];
+          if (Array.isArray(fJSON)) {
+              fJSON.forEach(track => {
+                  const cleanMName = (m.Nome || m.nome).replace(/<[^>]*>?/gm, '').trim();
+                  const memberInTrack = (track.members || []).find(tm => tm.name.replace(/<[^>]*>?/gm, '').trim() === cleanMName);
+                  if (memberInTrack) {
+                      let labels = [];
+                      if (track.kind) labels.push(track.kind);
+                      if (memberInTrack.isCenter) labels.push('Center');
+                      tracksInDisco.push({ title: track.name || 'Música', labels: labels });
+                  }
+              });
+          }
+          if (tracksInDisco.length > 0) {
+              autoParts.push({ single: d.Titulo || d.titulo, tracks: tracksInDisco });
+          }
+      });
+
+      const partsHTML = autoParts.map(p => { 
+          const rows = p.tracks.map(t => { 
+              const badges = t.labels.map(l => { 
+                  const slug = String(l).toLowerCase(); 
+                  let cls = 'is-bside'; let icon = 'fa-compact-disc'; 
+                  if(slug.includes('a-side') || slug==='aside') { cls='is-aside'; icon='fa-star'; } 
+                  else if(slug.includes('center')) { cls='is-center'; icon='fa-crown'; } 
+                  else if(slug.includes('unit')) { cls='is-unit'; icon='fa-users'; } 
+                  return `<span class="label-brat ${cls}"><i class="fas ${icon}"></i> ${l}</span>`; 
+              }).join(''); 
+              return `<div class="part-row"><span>${t.title}</span><div>${badges}</div></div>`; 
+          }).join(''); 
+          return `<div class="part-card"><div class="part-header">${p.single}</div>${rows}</div>`; 
+      }).join('');
+      
+      document.getElementById("m-part").innerHTML = partsHTML || '<p style="text-align:center; font-weight:bold; padding:20px;">Nenhuma música registrada.</p>'; 
+      switchTabModal('perfil', document.querySelector('#member-modal .tab-btn')); document.getElementById("member-modal").classList.add("active");
     }
 
     function openDiscoModal(idx) { 
@@ -409,27 +506,47 @@
       else if (unitOfDisco === 'Melancholy') { themeColor = 'var(--color-melancholy)'; unitName = 'Melancholy <i class="fas fa-skull"></i>'; }
       
       document.getElementById("disco-modal").style.setProperty('--primary', themeColor);
+
       document.getElementById("dm-cover").src = resolveImage(d.Capa || d.capa); 
       document.getElementById("dm-title").innerHTML = d.Titulo || d.titulo; 
       
       const uTag = document.getElementById("dm-unit-tag");
-      uTag.innerHTML = unitName; uTag.style.background = themeColor;
-      
-      const subTag = document.getElementById("dm-sub");
-      subTag.innerHTML = d.Tipo || d.tipo; subTag.style.color = themeColor; subTag.style.borderColor = themeColor;
+      uTag.innerHTML = unitName;
+      uTag.style.background = themeColor;
 
-      const box = document.getElementById("dm-content"); box.innerHTML = ""; 
-      let fJSON = d.Tracklist || d.tracklist; if (typeof fJSON === 'string') { try { fJSON = JSON.parse(fJSON); } catch(e){ fJSON = []; } }
-      if (Array.isArray(fJSON)) { box.innerHTML = `<div class="tabs"><button class="tab-btn active" data-target="t">Tracklist</button><button class="tab-btn" data-target="f">Formação</button></div><div id="pane-t" class="modal-section active" style="padding: 20px;">${renderTracklistFromJSON(fJSON)}</div><div id="pane-f" class="modal-section" style="padding: 20px;">${renderFormationFromJSON(fJSON)}</div>`; } 
-      initTabsAndAccordion(box); document.getElementById("disco-modal").classList.add("active"); 
+      const subTag = document.getElementById("dm-sub");
+      subTag.innerHTML = d.Tipo || d.tipo;
+      subTag.style.color = themeColor;
+      subTag.style.borderColor = themeColor;
+
+      const box = document.getElementById("dm-content"); 
+      box.innerHTML = ""; 
+      
+      let fJSON = getTracklistJSON(d);
+      
+      if (Array.isArray(fJSON)) { 
+          box.innerHTML = `<div class="tabs"><button class="tab-btn active" data-target="t">Tracklist</button><button class="tab-btn" data-target="f">Formação</button></div><div id="pane-t" class="modal-section active" style="padding: 20px;">${renderTracklistFromJSON(fJSON)}</div><div id="pane-f" class="modal-section" style="padding: 20px;">${renderFormationFromJSON(fJSON)}</div>`; 
+      } 
+      initTabsAndAccordion(box); 
+      document.getElementById("disco-modal").classList.add("active"); 
     }
     
     function initTabsAndAccordion(box) { box.querySelectorAll(".tab-btn").forEach(btn => { btn.onclick = () => { box.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active")); box.querySelectorAll(".modal-section").forEach(s => s.classList.remove("active")); btn.classList.add("active"); box.querySelector(`#pane-${btn.dataset.target}`).classList.add("active"); }; }); box.querySelectorAll(".formation-group").forEach(group => { let header = group.querySelector(".formation-header"); if(!header) { const title = group.querySelector(".formation-title"); if(title) { const txt = title.innerText; header = document.createElement("div"); header.className="formation-header"; header.innerHTML = `<div class="formation-title"><span class="formation-idol-icon"><i class="fas fa-skull"></i></span>${txt}</div><i class="fas fa-chevron-down formation-arrow"></i>`; group.insertBefore(header, group.firstChild); title.remove(); } } if(header) header.onclick = () => group.classList.toggle("open"); }); }
     function renderTracklistFromJSON(list) { if(!list || !list.length) return "<p>Vazio.</p>"; return `<ul class="tracklist">${list.map(item => { let cls='is-bside'; const k = (item.kind||"").toLowerCase(); if(k.includes('a-side')||k.includes('aside')) cls='is-aside'; else if(k.includes('unit')) cls='is-unit'; return `<li><span>${item.name}</span><span class="label-brat ${cls}">${item.kind}</span></li>`; }).join('')}</ul>`; }
-    function renderFormationFromJSON(list) { if(!list || !list.length) return "<p>Vazio.</p>"; return list.map(g => `<div class="formation-group"><div class="formation-header"><div class="formation-title"><span class="formation-idol-icon"><i class="fas fa-skull"></i></span>${g.name}</div><i class="fas fa-chevron-down formation-arrow"></i></div><div class="formation-content"><div class="member-grid">${(g.members||[]).map(m => { const cleanMName = m.name.replace(/<[^>]*>?/gm, '').trim(); const real = loadedMembers.find(x => (x.Nome||x.nome).replace(/<[^>]*>?/gm, '').trim() === cleanMName); const url = real ? resolveImage(real.Foto||real.foto) : pImg(m.name, "Love"); return `<div class="member-card-static ${m.isCenter?'is-center':''}"><img src="${url}"><div class="member-info"><h3>${m.name}</h3></div></div>`; }).join('')}</div></div></div>`).join(''); }
+    function renderFormationFromJSON(list) { 
+        if(!list || !list.length) return "<p>Vazio.</p>"; 
+        return list.map(g => `<div class="formation-group"><div class="formation-header"><div class="formation-title"><span class="formation-idol-icon"><i class="fas fa-skull"></i></span>${g.name}</div><i class="fas fa-chevron-down formation-arrow"></i></div><div class="formation-content"><div class="member-grid">${(g.members||[]).map(m => { 
+            const cleanMName = m.name.replace(/<[^>]*>?/gm, '').trim();
+            const real = loadedMembers.find(x => (x.Nome||x.nome).replace(/<[^>]*>?/gm, '').trim() === cleanMName); 
+            const url = real ? resolveImage(real.Foto||real.foto) : pImg(m.name, "Love"); 
+            return `<div class="member-card-static ${m.isCenter?'is-center':''}"><img src="${url}"><div class="member-info"><h3>${m.name}</h3></div></div>`; 
+        }).join('')}</div></div></div>`).join(''); 
+    }
+    
     function renderStagesList() { const div = document.getElementById('stages-list'); if(!loadedStages.length) { div.innerHTML = '<div style="text-align:center; font-weight:bold; padding:20px;">Nenhum show registrado.</div>'; return; } div.innerHTML = loadedStages.map(s => `<div class="stage-card" onclick="openStageModal(${s.id})"><img src="${resolveImage(s.Capa || s.capa)}" class="stage-cover"><div class="stage-info"><div class="stage-title">${s.Titulo || s.titulo}</div><div class="stage-sub">${s.Subtitulo || s.subtitulo || ''}</div><span class="stage-badge">${s.Status || s.status || 'Confirmado'}</span></div></div>`).join(''); }
     function openStageModal(stageId) { const stage = loadedStages.find(s => s.id == stageId); if(!stage) return; document.getElementById("sm-title").innerHTML = stage.Titulo || stage.titulo; document.getElementById("sm-sub").innerHTML = stage.Subtitulo || stage.subtitulo || ''; document.getElementById("sm-cover").src = resolveImage(stage.Capa || stage.capa); const content = document.getElementById("sm-content"); content.innerHTML = `<div class="tabs"><button class="tab-btn active" data-target="s-setlist">Setlist</button><button class="tab-btn" data-target="s-cast">Elenco</button></div><div id="pane-s-setlist" class="modal-section active" style="padding:20px;">${renderSetlist(stage.Setlist || stage.setlist)}</div><div id="pane-s-cast" class="modal-section" style="padding:20px;"><div style="text-align:center; font-weight:bold;">Aguardando DB de Elenco.</div></div>`; document.getElementById("stage-modal").classList.add("active"); initTabsAndAccordion(content); }
     function renderSetlist(text) { if(!text) return ''; return '<div class="setlist-wrap">' + text.split('\n').map(line => { const l = line.trim(); if(!l) return ''; if(l.match(/^M\d+/)) return `<div class="sl-row"><span class="sl-music">${l}</span></div>`; if(l.match(/^MC\d+/)) return `<div class="sl-row"><span class="sl-mc">${l}</span></div>`; if(l.toLowerCase().includes('encore')) return `<div class="sl-header">${l}</div>`; return `<div class="sl-row">${l}</div>`; }).join('') + '</div>'; }
+    
     function resolveImage(f) { if(!f) return pImg("?", "All"); return (typeof f === "string" ? f : f.publicUrl).replace(/[\[\]"]/g, ""); }
     function switchTabModal(t, el) { const p = el.parentElement; p.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active")); el.classList.add("active"); const content = p.nextElementSibling.parentElement; content.querySelectorAll(".tab-pane").forEach(tp => tp.classList.remove("active")); content.querySelector("#tab-"+t).classList.add("active"); }
     function closeModal(id) { document.getElementById(id).classList.remove("active"); }
