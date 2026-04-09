@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Melancholy Love - Official App</title>
+  
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,700;0,900;1,900&family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    /* --- TEMA CUTE & EMO (Pastel Goth / Punk Neobrutalism) --- */
+    :root {
+      --color-melancholy-love: #FF69B4; 
+      --color-love: #E60000;            
+      --color-melancholy: #8A2BE2;      
+      
+      --primary: var(--color-melancholy-love); 
+      --primary-light: #FFB6C1;     
+      --black: #111111; 
+      --white: #ffffff; 
+      --bg: #FFF0F5;
+      
+      --border: 3px solid var(--black); 
+      --border-dashed: 3px dashed var(--black);
+      --shadow: 5px 5px 0px var(--black); 
+      --shadow-sm: 3px 3px 0px var(--black);
+      --radius: 0px; 
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
+    
+    body { 
+      background-color: var(--bg); 
+      background-image: linear-gradient(var(--primary-light) 1px, transparent 1px), linear-gradient(90deg, var(--primary-light) 1px, transparent 1px);
+      background-size: 20px 20px;
+      color: var(--black); 
+      font-family: 'Roboto', sans-serif; 
+      padding-bottom: 90px; 
+      overflow-x: hidden; 
+      transition: background-color 0.3s ease;
+    }
+    
+    h1, h2, h3, h4, .font-head { font-family: 'Montserrat', sans-serif; font-weight: 900; text-transform: uppercase; letter-spacing: -0.5px; font-style: italic; }
+
+    .header { background: var(--black); padding: 15px; position: sticky; top: 0; z-index: 100; border-bottom: 4px solid var(--primary); text-align: center; transition: border-color 0.3s;}
+    .logo { font-family: 'Montserrat', sans-serif; font-weight: 900; font-size: 1.3rem; color: var(--white); letter-spacing: -1px; }
+    .logo span { background: var(--primary); color: var(--black); padding: 2px 8px; margin-left: 5px; font-style: normal; transform: rotate(-3deg); display: inline-block; transition: 0.3s;}
+    
+    .container { padding: 0 15px; max-width: 600px; margin: 0 auto; }
+    .view-section { display: none; padding-top: 20px; }
+    .view-section.active { display: block; animation: slideIn 0.2s ease-out; }
+    @keyframes slideIn { from { opacity: 0; transform: translateX(10px); } to { opacity: 1; transform: translateX(0); } }
+
+    /* EFEITOS ESPECIAIS DE FLASH */
+    @keyframes flash-melancholy { 0% { background-color: var(--color-melancholy); } 100% { background-color: var(--bg); } }
+    @keyframes flash-love { 0% { background-color: var(--color-love); } 100% { background-color: var(--bg); } }
+    @keyframes flash-all { 0% { background-color: var(--color-melancholy-love); } 100% { background-color: var(--bg); } }
+    
+    .fx-flash-melancholy { animation: flash-melancholy 0.4s ease-out; }
+    .fx-flash-love { animation: flash-love 0.4s ease-out; }
+    .fx-flash-all { animation: flash-all 0.4s ease-out; }
+
+    /* CARDS & GRIDS */
+    .card { background: #fff; border: var(--border); box-shadow: var(--shadow); padding: 15px; margin-bottom: 20px; }
+    .section-title { font-size: 1.3rem; margin-bottom: 15px; background: var(--primary); color: var(--white); display: inline-block; padding: 5px 15px; border: var(--border); transform: rotate(-2deg); box-shadow: 2px 2px 0 #000; transition: 0.3s;}
+    .grid-2 { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 12px; align-items: start; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    
+    .item-card { text-align: center; cursor: pointer; transition: transform 0.1s; background: #fff; border: var(--border); padding: 8px; box-shadow: var(--shadow-sm); display: flex; flex-direction: column; gap: 6px; }
+    .item-card:active { transform: translate(3px, 3px); box-shadow: none; }
+    .item-card img { width: 100%; aspect-ratio: 1/1; object-fit: cover; border: var(--border-dashed); background: #fff; display: block; transition: 0.3s; }
+    .item-name { font-weight: 900; font-size: 0.8rem; line-height: 1.2; text-transform: uppercase; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+
+    /* HERO BANNER */
+    .hero { position: relative; height: 350px; border: var(--border); box-shadow: var(--shadow); margin-bottom: 30px; overflow: hidden; background: #000; color: #fff; cursor: pointer; transition: transform 0.2s;}
+    .hero:active { transform: translate(3px, 3px); box-shadow: none; }
+    .hero-media { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.8; z-index: 1; pointer-events: none; filter: contrast(120%);}
+    .hero-content { position: absolute; bottom: 0; left: 0; width: 100%; padding: 20px; z-index: 2; background: linear-gradient(to top, rgba(0,0,0,1), transparent); pointer-events: none; }
+    .tag { background: var(--primary); color: var(--white); font-weight: 900; font-size: 0.7rem; padding: 4px 10px; display: inline-block; margin-bottom: 8px; border: 2px solid #000; transition: 0.3s;}
+
+    /* BOTOES E FILTROS (TAGS) */
+    .tags-container { display: flex; gap: 8px; margin-bottom: 25px; overflow-x: auto; padding-bottom: 5px; }
+    .tags-container::-webkit-scrollbar { display: none; }
+    .btn-tag { flex: 1; min-width: max-content; padding: 10px 15px; border: var(--border-dashed); background: #fff; font-weight: 900; font-size: 0.75rem; cursor: pointer; box-shadow: var(--shadow-sm); text-transform: uppercase; transition: 0.2s;}
+    
+    .btn-tag.tag-all.active { background: var(--color-melancholy-love); color: #000; border: var(--border); }
+    .btn-tag.tag-melancholy.active { background: var(--color-melancholy); color: #fff; border: var(--border); }
+    .btn-tag.tag-love.active { background: var(--color-love); color: #fff; border: var(--border); }
+
+    /* MODAIS VISUALIZACAO */
+    .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(4px); z-index: 2000; display: none; justify-content: center; align-items: flex-end; }
+    .modal-overlay.active { display: flex; animation: fadeModal 0.2s forwards; }
+    @keyframes fadeModal { from{opacity:0;} to{opacity:1;} }
+    .modal-content { background: var(--bg); width: 100%; max-width: 600px; height: 92vh; border: var(--border); border-bottom: none; overflow-y: auto; position: relative; animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1); transition: background-color 0.3s;}
+    @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+    .close-btn { position: absolute; top: 15px; right: 15px; background: var(--primary); color: #fff; border: var(--border); width: 35px; height: 35px; z-index: 10; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: 900; box-shadow: 2px 2px 0 #000; transition: 0.3s;}
+
+    /* ABAS INTERNAS DOS MODAIS */
+    .tabs { display: flex; border-bottom: var(--border); background: var(--black); position: sticky; top: 0; z-index: 5; }
+    .tab-btn { flex: 1; padding: 15px; border: none; background: none; font-weight: 900; font-size: 0.8rem; color: #888; cursor: pointer; text-transform: uppercase; border-bottom: 5px solid transparent; transition: 0.3s;}
+    .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); }
+    .tab-pane, .modal-section { display: none; padding: 20px; }
+    .tab-pane.active, .modal-section.active { display: block; }
+
+    /* LISTA DE MÚSICAS NO PERFIL */
+    .part-card { background: #fff; border: var(--border); margin-bottom: 12px; overflow: hidden; box-shadow: var(--shadow-sm); }
+    .part-header { background: var(--primary); color: #fff; padding: 12px 15px; font-weight: 900; font-size: 0.8rem; text-transform: uppercase; border-bottom: var(--border); display: flex; justify-content: space-between; align-items: center; transition: 0.3s;}
+    .part-header::after { content: '\f714'; font-family: "Font Awesome 6 Free"; font-weight: 900; font-size: 1rem; }
+    .part-row { padding: 12px 15px; border-bottom: 2px dashed #000; display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; font-weight: 700; background: #fff;}
+    .part-row:last-child { border-bottom: none; }
+    
+    .label-brat { display: inline-flex; align-items: center; gap: 5px; font-size: 0.6rem; padding: 4px 8px; font-weight: 900; text-transform: uppercase; border: 2px solid #000; margin-left: 5px; box-shadow: 2px 2px 0 #000; white-space: nowrap; }
+    .label-brat.is-aside { background: var(--primary); color: #fff; transition: 0.3s;} 
+    .label-brat.is-bside { background: #000; color: var(--primary); transition: 0.3s;}
+    .label-brat.is-center { background: #fff; color: #000; border-color: #000; } 
+
+    /* TRACKLISTS (DISCOS E SHOWS) */
+    .tracklist { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 12px; }
+    .tracklist li { padding: 15px; border: var(--border); font-size: 0.9rem; font-weight: 900; display: flex; justify-content: space-between; align-items: center; text-transform: uppercase; background: #fff; box-shadow: 3px 3px 0 var(--primary); transition: 0.3s;}
+    
+    .setlist-wrap { padding: 10px 0; font-family: 'Roboto', sans-serif; background: #fff; border: var(--border); padding: 15px;}
+    .sl-row { padding: 8px 0; border-bottom: 1px dashed #000; font-size: 0.85rem; font-weight: 700; display: flex; align-items: flex-start; gap: 8px; text-transform: uppercase;}
+    .sl-music { background: var(--black); color: var(--primary); font-weight: 900; padding: 2px 6px; border: 2px solid var(--primary); box-shadow: 2px 2px 0 var(--primary); display: inline-block; transition: 0.3s;}
+    .sl-mc { background: var(--primary); color: #fff; padding: 2px 6px; font-size: 0.7rem; font-weight: 900; border: 1px solid #000; transition: 0.3s;}
+    .sl-header { margin-top: 20px; font-weight: 900; font-size: 1.2rem; text-transform: uppercase; border-bottom: 4px solid var(--black); display: inline-block; padding-bottom: 5px;}
+
+    /* FORMAÇÃO DO DISCO */
+    .formation-group { background: #fff; border: var(--border); margin-bottom: 15px; overflow: hidden; box-shadow: var(--shadow-sm); }
+    .formation-header { padding: 15px; background: #fff; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: 0.2s; }
+    .formation-title { font-size: 0.85rem !important; font-weight: 800 !important; display: flex; align-items: center; gap: 10px; margin: 0 !important; text-transform: uppercase; }
+    .formation-arrow { transition: transform 0.3s ease; }
+    .formation-group.open .formation-arrow { transform: rotate(180deg); }
+    .formation-content { max-height: 0; overflow: hidden; transition: max-height 0.3s ease; background: var(--bg); }
+    .formation-group.open .formation-content { max-height: 2000px; padding: 15px; border-top: var(--border-dashed); }
+    .formation-idol-icon { width: 26px; height: 26px; background: var(--black); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 0.7rem; border: 2px solid var(--primary); transition: 0.3s;}
+    
+    .member-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); gap: 10px; }
+    .member-card-static { text-align: center; position: relative; background: #fff; border: var(--border); padding: 5px; }
+    .member-card-static img { width: 100%; aspect-ratio: 1/1; border: 2px solid #000; object-fit: cover; background: #fff; transition: 0.2s; filter: grayscale(20%); }
+    .member-card-static.is-center { border-color: var(--primary); box-shadow: 3px 3px 0 #000; transform: scale(1.05); transition: 0.3s;}
+    .member-card-static.is-center img { filter: grayscale(0%); border-color: var(--primary);}
+    .member-info h3 { font-size: 0.65rem; font-weight: 900; margin-top: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-transform: uppercase; }
+
+    /* UI DO HISTÓRICO DE TIMES */
+    .team-history-timeline { border-left: 3px solid #000; padding-left: 15px; margin-top: 10px; }
+    .team-history-item { position: relative; margin-bottom: 15px; font-size: 0.8rem; font-weight: 900; text-transform: uppercase;}
+    .team-history-item::before { content: ''; position: absolute; left: -24px; top: 0px; width: 12px; height: 12px; background: var(--primary); border: 3px solid #000; transition: 0.3s;}
+    .team-history-date { font-size: 0.7rem; color: #fff; font-weight: 900; background: #000; padding: 2px 5px; display: inline-block; margin-bottom: 3px; transition: 0.3s;}
+
+    /* MENU INFERIOR */
+    .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; height: 75px; background: var(--white); display: flex; border-top: var(--border); z-index: 1000; }
+    .nav-item { flex: 1; border: none; border-right: 2px solid #000; background: none; color: #000; font-size: 0.6rem; display: flex; flex-direction: column; align-items: center; justify-content: center; font-weight: 900; text-transform: uppercase; cursor: pointer; transition: 0.1s;}
+    .nav-item:last-child { border-right: none; }
+    .nav-item.active { background: var(--primary); color: #fff; transition: background 0.3s;}
+    .nav-item i { font-size: 1.4rem; margin-bottom: 4px; }
+    
+    .nav-item.active.black-text { color: #000; }
+
+    /* BLINDAGEM DE IMAGEM PARA SHOWS */
+    .stage-card { background: #fff; border: var(--border); padding: 15px; margin-bottom: 15px; display: flex; gap: 15px; align-items: center; box-shadow: var(--shadow); cursor: pointer;}
+    .stage-card:active { transform: translate(3px, 3px); box-shadow: none; }
+    .stage-cover { width: 80px; min-width: 80px; height: 80px; border: var(--border-dashed); object-fit: cover; background: var(--black); }
+    .stage-info { flex: 1; }
+    .stage-title { font-weight: 900; font-size: 1rem; text-transform: uppercase; line-height: 1.1; }
+    .stage-sub { font-size: 0.7rem; font-weight: 700; color: #666; margin-top: 4px; }
+    .stage-badge { font-size: 0.6rem; padding: 4px 8px; background: var(--primary); color: #000; font-weight: 900; display: inline-block; margin-top: 6px; border: 2px solid #000; }
+  </style>
+</head>
+
+<body>
+  <div class="header"><div class="logo">MELANCHOLY<span>LOVE <i class="fas fa-heart"></i></span></div></div>
+
+  <div id="view-home" class="view-section active container">
+    <div class="hero" id="hero-container">
+      <div id="hero-media-wrapper"></div>
+      <div class="hero-content">
+        <span class="tag" id="hero-tag">NEW RELEASE <i class="fas fa-tint"></i></span>
+        <h1 id="hero-title" class="font-head" style="font-size: 1.5rem; line-height: 1.1;">Carregando...</h1>
+        <p id="hero-sub" style="font-size: 0.8rem; font-weight: 700; opacity: 0.9;">...</p>
+      </div>
+    </div>
+    <h3 class="section-title">Últimas Notícias <i class="fas fa-newspaper"></i></h3>
+    <div id="news-list"></div>
+  </div>
+
+  <div id="view-disco" class="view-section container">
+    <h3 class="section-title">Discografia <i class="fas fa-compact-disc"></i></h3>
+    <div class="tags-container">
+      <button class="btn-tag tag-all active" onclick="setUnitFilter('All')">Melancholy Love <i class="fas fa-heart"></i></button>
+      <button class="btn-tag tag-melancholy" onclick="setUnitFilter('Melancholy')">Melancholy <i class="fas fa-skull"></i></button>
+      <button class="btn-tag tag-love" onclick="setUnitFilter('Love')">Love <i class="fas fa-heart"></i></button>
+    </div>
+    <div id="disco-grid" class="grid-2"></div>
+  </div>
+
+  <div id="view-members" class="view-section container">
+    <h3 class="section-title">Membros <i class="fas fa-skull"></i></h3>
+    <div class="tags-container">
+      <button class="btn-tag tag-all active" onclick="setUnitFilter('All')">Melancholy Love <i class="fas fa-heart"></i></button>
+      <button class="btn-tag tag-melancholy" onclick="setUnitFilter('Melancholy')">Melancholy <i class="fas fa-skull"></i></button>
+      <button class="btn-tag tag-love" onclick="setUnitFilter('Love')">Love <i class="fas fa-heart"></i></button>
+    </div>
+    <div id="members-container"></div>
+  </div>
+
+  <div id="view-stages" class="view-section container">
+    <h3 class="section-title">Shows <i class="fas fa-guitar"></i></h3>
+    <div id="stages-list"></div>
+  </div>
+
+  <div id="member-modal" class="modal-overlay" onclick="if(event.target==this)closeModal('member-modal')">
+    <div class="modal-content">
+      <button class="close-btn" onclick="closeModal('member-modal')"><i class="fas fa-times"></i></button>
+      <div style="height:120px; background:var(--black); border-bottom:var(--border);"></div>
+      <img id="m-cover" style="width:130px; height:130px; border:var(--border); border-color: var(--primary); object-fit:cover; margin:-65px auto 10px; display:block; background:#000; box-shadow: var(--shadow-sm);" src="">
+      <h2 id="m-name" class="font-head" style="text-align:center; font-size:1.8rem;"></h2>
+      <p id="m-team" style="text-align:center; font-weight:900; font-size:0.8rem; color:#666; margin-bottom:15px; text-transform: uppercase;"></p>
+      <div class="tabs"><button class="tab-btn active" onclick="switchTabModal('perfil', this)">Perfil</button><button class="tab-btn" onclick="switchTabModal('part', this)">Músicas</button></div>
+      <div id="tab-perfil" class="tab-pane active">
+          <p id="m-bio" style="font-size:0.9rem; line-height:1.6; color:#000; font-weight:500; white-space: pre-wrap; margin-bottom:20px; background:#fff; padding:15px; border:var(--border-dashed);"></p>
+          <div style="background:#fff; border:var(--border); padding:15px; box-shadow:var(--shadow-sm);">
+              <h4 style="font-size:1rem; text-transform:uppercase; margin-bottom:10px; background:#000; color:var(--primary); display:inline-block; padding:4px 10px; transition:0.3s;"><i class="fas fa-history"></i> Histórico de Units</h4>
+              <div id="m-history-timeline" class="team-history-timeline"></div>
+          </div>
+      </div>
+      <div id="tab-part" class="tab-pane"><div id="m-part"></div></div>
+    </div>
+  </div>
+
+  <div id="disco-modal" class="modal-overlay" onclick="if(event.target==this)closeModal('disco-modal')">
+    <div class="modal-content">
+      <button class="close-btn" onclick="closeModal('disco-modal')"><i class="fas fa-times"></i></button>
+      <div style="padding: 30px 20px 20px; text-align: center; background:var(--black); border-bottom:var(--border);">
+        <img id="dm-cover" src="" style="width:160px; height:160px; border:var(--border); border-color: var(--primary); object-fit:cover; box-shadow: 5px 5px 0 var(--primary); transition: 0.3s;">
+        <h2 id="dm-title" class="font-head" style="margin-top:20px; font-size:1.6rem; color:var(--primary);"></h2>
+        <p id="dm-sub" style="color:#fff; font-weight:900; text-transform:uppercase; font-size:0.9rem; background:var(--primary); display:inline-block; padding:2px 10px; border:2px solid #000; margin-top:5px; transition:0.3s;"></p>
+      </div>
+      <div id="dm-content" style="padding: 0;"></div>
+    </div>
+  </div>
+
+  <div id="stage-modal" class="modal-overlay" onclick="if(event.target==this)closeModal('stage-modal')">
+    <div class="modal-content">
+      <button class="close-btn" onclick="closeModal('stage-modal')"><i class="fas fa-times"></i></button>
+      <div style="padding: 30px 20px 20px; text-align: center; background:var(--black); border-bottom:var(--border);">
+        <img id="sm-cover" src="" style="width:160px; height:160px; border:var(--border); object-fit:cover; box-shadow: 5px 5px 0 var(--primary);">
+        <h2 id="sm-title" class="font-head" style="margin-top:20px; font-size:1.4rem; color:var(--primary);"></h2>
+        <p id="sm-sub" style="color:#fff; font-weight:900; text-transform:uppercase; font-size:0.8rem; background:var(--primary); display:inline-block; padding:2px 10px; border:2px solid #000; margin-top:5px; transition:0.3s;"></p>
+      </div>
+      <div id="sm-content" style="padding: 0;"></div>
+    </div>
+  </div>
+
+  <div class="bottom-nav">
+    <button class="nav-item active black-text" onclick="switchView('view-home', this)"><i class="fas fa-skull"></i>Início</button>
+    <button class="nav-item" onclick="switchView('view-disco', this)"><i class="fas fa-compact-disc"></i>Discos</button>
+    <button class="nav-item" onclick="switchView('view-members', this)"><i class="fas fa-users"></i>Membros</button>
+    <button class="nav-item" onclick="switchView('view-stages', this)"><i class="fas fa-microphone-alt"></i>Shows</button>
+  </div>
+
+  <script>
+    // --- SUPABASE SETUP ---
+    var supaUrl = 'https://cotzdfxjazojpwpmkoss.supabase.co';
+    var supaKey = 'sb_publishable_vF3JVZw3vDrfLM5M6xtw_w_0VJh7uwm';
+    var db = window.supabase.createClient(supaUrl, supaKey);
+
+    var loadedMembers = [], loadedDiscos = [], loadedStages = [], loadedNews = [], loadedBanner = null;
+    var currentUnitFilter = 'All';
+
+    const pImg = (name, unit) => {
+        let hexCol = 'FF69B4'; 
+        if (unit === 'Melancholy') hexCol = '8A2BE2'; 
+        else if (unit === 'Love') hexCol = 'E60000'; 
+        let cleanName = name.replace(/<[^>]*>?/gm, '').trim().substring(0,3).toUpperCase();
+        return `https://ui-avatars.com/api/?name=${encodeURIComponent(cleanName)}&background=${hexCol}&color=111&size=200&font-size=0.33&bold=true`;
+    };
+    
+    // Fallback Mock Data
+    const mockMembers = [
+      { Nome: "Yua <i class='fas fa-skull'></i>", Geracao: "1ª Geração", Foto: pImg("YUA", "Love"), SubUnit: "Love", Status: "Ativa", Perfil: "A center misteriosa. Vive com sono e só bebe energético vermelho. <i class='fas fa-tint'></i>", Historico_Times: '[{"data":"Nov 2023", "para":"Sub Unit: Love"}]', Participacoes: '[{"single": "Bleeding Love", "tracks": [{"title": "Bleeding Love", "labels": ["A-Side", "Center"]}, {"title": "Crying in the Club", "labels": ["B-Side"]}]}]' },
+      { Nome: "Hina <i class='fas fa-heart-broken'></i>", Geracao: "1ª Geração", Foto: pImg("HIN", "Love"), SubUnit: "Love", Status: "Ativa", Perfil: "Coleciona curativos e adora guitarras barulhentas. <i class='fas fa-guitar'></i>", Historico_Times: '[{"data":"Nov 2023", "para":"Sub Unit: Love"}]', Participacoes: '[{"single": "Bleeding Love", "tracks": [{"title": "Bleeding Love", "labels": ["A-Side"]}]}]' },
+      { Nome: "Rei <i class='fas fa-link'></i>", Geracao: "1ª Geração", Foto: pImg("REI", "Melancholy"), SubUnit: "Melancholy", Status: "Ativa", Perfil: "A rebelde do grupo. Usa correntes até pra dormir. <i class='fas fa-skull'></i>", Historico_Times: '[{"data":"Nov 2023", "para":"Trainee"}, {"data":"Jan 2024", "para":"Sub Unit: Melancholy"}]', Participacoes: '[{"single": "Bleeding Love", "tracks": [{"title": "Bleeding Love", "labels": ["A-Side"]}, {"title": "Dark Room", "labels": ["Unit", "Center"]}]}]' },
+      { Nome: "Miku <i class='fas fa-ribbon'></i>", Geracao: "1ª Geração", Foto: pImg("MIK", "Love"), SubUnit: "Love", Status: "Ativa", Perfil: "A princesinha das trevas. Ouve death metal escondida. <i class='fas fa-skull'></i>", Historico_Times: '[{"data":"Mar 2024", "para":"Trainee"}, {"data":"Ago 2024", "para":"Sub Unit: Love"}]', Participacoes: '[{"single": "Bleeding Love", "tracks": [{"title": "Bleeding Love", "labels": ["A-Side"]}]}]' },
+      { Nome: "Ami <i class='fas fa-headphones'></i>", Geracao: "1ª Geração", Foto: pImg("AMI", "Melancholy"), SubUnit: "Melancholy", Status: "Ativa", Perfil: "Sempre de fones de ouvido. Não fala muito, mas dança como ninguém.", Historico_Times: '[{"data":"Mar 2024", "para":"Trainee"}, {"data":"Ago 2024", "para":"Sub Unit: Melancholy"}]', Participacoes: '[{"single": "Bleeding Love", "tracks": [{"title": "Crying in the Club", "labels": ["B-Side", "Center"]}]}]' }
+    ];
+
+    const mockDiscos = [
+      { id: 3, Titulo: "Bleeding Love <i class='fas fa-tint'></i>", Tipo: "3rd Single", Capa: pImg("BLD\nLOV", "All"), Tracklist: `<div id="ctl48-formation-data">${JSON.stringify([{ kind: "A-Side", name: "Bleeding Love", members: [{name:"Yua <i class='fas fa-skull'></i>", isCenter:true}, {name:"Hina <i class='fas fa-heart-broken'></i>"}, {name:"Rei <i class='fas fa-link'></i>"}, {name:"Miku <i class='fas fa-ribbon'></i>"}] }, { kind: "B-Side", name: "Crying in the Club", members: [{name:"Ami <i class='fas fa-headphones'></i>", isCenter:true}, {name:"Yua <i class='fas fa-skull'></i>"}] }, { kind: "Unit", name: "Dark Room", members: [{name:"Rei <i class='fas fa-link'></i>", isCenter:true}] }])}</div>` },
+      { id: 2, Titulo: "Love is Error 404 <i class='fas fa-heart-broken'></i>", Tipo: "2nd Single", Capa: pImg("ERR\n404", "Melancholy"), Tracklist: `<div id="ctl48-formation-data">${JSON.stringify([{ kind: "A-Side", name: "Love is Error 404", members: [{name:"Yua <i class='fas fa-skull'></i>", isCenter:true}, {name:"Hina <i class='fas fa-heart-broken'></i>"}, {name:"Rei <i class='fas fa-link'></i>"}] }])}</div>` },
+      { id: 1, Titulo: "Tears & Strawberry <i class='fas fa-heart'></i>", Tipo: "1st Single", Capa: pImg("TEA\nSTR", "Love"), Tracklist: `<div id="ctl48-formation-data">${JSON.stringify([{ kind: "A-Side", name: "Tears & Strawberry", members: [{name:"Yua <i class='fas fa-skull'></i>", isCenter:true}, {name:"Hina <i class='fas fa-heart-broken'></i>"}] }])}</div>` }
+    ];
+
+    const mockNews = [
+      { Data: "2024-10-31", Categoria: "LANÇAMENTO", Titulo: "O 3º Single 'Bleeding Love' está disponível!" },
+      { Data: "2024-09-15", Categoria: "EVENTO", Titulo: "Anúncio do Concerto de Aniversário de 1 Ano do Grupo." }
+    ];
+
+    const mockStages = [
+      { id: 1, Titulo: "1st Live: Tokyo Dome <i class='fas fa-microphone'></i>", Subtitulo: "Love & Melancholy Concert", Status: "Finalizado", Capa: pImg("TKY\nDOM", "All"), Setlist: "M00. Overture (Emo Punk Ver.)\nM01. Bloody Intro\nM02. Love is Error 404\nMC1. Auto-Apresentação\nM03. Dark Room\nM04. Crying in the Club\nMC2. Interação com o Público\nM05. Tears & Strawberry\nENCORE\nM06. Bleeding Love\nMC3. Despedida\nM07. Melancholy Love (Anthem)" }
+    ];
+
+    async function init() {
+      try {
+        const [memRes, discRes, newsRes, stageRes, banRes] = await Promise.all([
+          db.from('members').select('*').order('created_at', { ascending: true }),
+          db.from('discos').select('*').order('created_at', { ascending: false }),
+          db.from('news').select('*').order('data', { ascending: false }),
+          db.from('stages').select('*').order('created_at', { ascending: false }),
+          db.from('banner').select('*').eq('id', 1).single()
+        ]);
+
+        if(memRes.data && memRes.data.length > 0) {
+            loadedMembers = memRes.data.map(m => ({ id: m.id, Nome: m.nome, Geracao: m.geracao, Foto: m.foto, SubUnit: m.subunit, Status: m.status, Perfil: m.perfil, Historico_Times: typeof m.historico_times === 'string' ? m.historico_times : JSON.stringify(m.historico_times || []), Participacoes: typeof m.participacoes === 'string' ? m.participacoes : JSON.stringify(m.participacoes || []) }));
+        } else loadedMembers = mockMembers;
+
+        if(discRes.data && discRes.data.length > 0) {
+            loadedDiscos = discRes.data.map(d => ({ id: d.id, Titulo: d.titulo, Tipo: d.tipo, Capa: d.capa, Tracklist: typeof d.tracklist === 'string' ? d.tracklist : JSON.stringify(d.tracklist || []) }));
+        } else loadedDiscos = mockDiscos;
+
+        if(newsRes.data && newsRes.data.length > 0) {
+            loadedNews = newsRes.data.map(n => ({ id: n.id, Data: n.data, Categoria: n.categoria, Titulo: n.titulo }));
+        } else loadedNews = mockNews;
+
+        if(stageRes.data && stageRes.data.length > 0) {
+            loadedStages = stageRes.data.map(s => ({ id: s.id, Titulo: s.titulo, Subtitulo: s.subtitulo, Status: s.status, Capa: s.capa, Setlist: s.setlist }));
+        } else loadedStages = mockStages;
+
+        if(banRes.data) loadedBanner = banRes.data;
+        else loadedBanner = { tipo: 'imagem', url_midia: 'https://i.ibb.co/bM4DYRtR/Chat-GPT-Image-8-de-abr-de-2026-16-50-31.png', titulo: 'BLEEDING LOVE <i class="fas fa-tint"></i>', subtitulo: 'ASSISTA AO NOVO MV', tag: 'NEW RELEASE <i class="fas fa-tint"></i>' };
+
+      } catch (e) {
+        console.warn("Falha no Supabase. Usando Fallbacks Mocks.");
+        loadedMembers = mockMembers; loadedDiscos = mockDiscos; loadedStages = mockStages; loadedNews = mockNews;
+        loadedBanner = { tipo: 'imagem', url_midia: 'https://i.ibb.co/bM4DYRtR/Chat-GPT-Image-8-de-abr-de-2026-16-50-31.png', titulo: 'BLEEDING LOVE <i class="fas fa-tint"></i>', subtitulo: 'ASSISTA AO NOVO MV', tag: 'NEW RELEASE <i class="fas fa-tint"></i>' };
+      } finally {
+        renderDynamicHero();
+        renderNews(loadedNews);
+        setUnitFilter('All'); 
+        renderStagesList();
+      }
+    }
+
+    function switchView(id, el) { 
+      document.querySelectorAll(".view-section").forEach(v => v.classList.remove("active")); 
+      document.querySelectorAll(".nav-item").forEach(n => n.classList.remove("active")); 
+      document.getElementById(id).classList.add("active"); 
+      el.classList.add("active"); 
+      window.scrollTo(0,0); 
+    }
+
+    function renderDynamicHero() { const wrapper = document.getElementById("hero-media-wrapper"); let b = loadedBanner; if(!b) return; document.getElementById("hero-title").innerHTML = b.titulo; document.getElementById("hero-sub").innerHTML = b.subtitulo; if(b.tag) document.getElementById("hero-tag").innerHTML = b.tag; wrapper.innerHTML = `<img class="hero-media" src="${b.url_midia}">`; }
+    function renderNews(list) { document.getElementById("news-list").innerHTML = list.slice(0,10).map(n => { const d = (n.Data||"").split("-"); return `<div class="card" style="display:flex; align-items:center; gap:15px;"><div style="text-align:center; min-width:50px; border-right:3px dashed #000; padding-right:15px;"><b style="font-size:1.5rem; color:var(--primary); -webkit-text-stroke:1px #000;">${d[2]||'00'}</b><br><span style="font-size:0.7rem; font-weight:900;">${d[1]||'00'}/${d[0]||'00'}</span></div><div><span class="tag" style="font-size:0.6rem; padding:2px 5px;">${n.Categoria}</span><h4 style="font-size:0.9rem; text-transform:uppercase;">${n.Titulo}</h4></div></div>`; }).join(''); }
+    
+    function getTracklistJSON(d) {
+        if (!d || !d.Tracklist) return null;
+        if (typeof d.Tracklist === 'string') {
+            if (d.Tracklist.includes('ctl48-formation-data')) {
+                const temp = document.createElement("div"); temp.innerHTML = d.Tracklist; 
+                const jsonEl = temp.querySelector("#ctl48-formation-data"); 
+                if(jsonEl) { try { return JSON.parse(jsonEl.textContent.trim()); } catch(e){ return null; } }
+            }
+            try { return JSON.parse(d.Tracklist); } catch(e) { return null; }
+        }
+        return d.Tracklist;
+    }
+
+    function getCenterUnitColor(d) {
+        let themeColor = 'var(--black)';
+        const fJSON = getTracklistJSON(d);
+        
+        if (fJSON && Array.isArray(fJSON)) {
+            const aSide = fJSON.find(t => t.kind && (t.kind.includes('A-Side') || t.kind.includes('aside')));
+            
+            if (aSide && aSide.members && aSide.members.length > 0) {
+              let hasLove = false;
+              let hasMelancholy = false;
+              
+              aSide.members.forEach(m => {
+                const cleanName = m.name.replace(/<[^>]*>?/gm, '').trim();
+                const realMember = loadedMembers.find(x => x.Nome.replace(/<[^>]*>?/gm, '').trim() === cleanName);
+                if (realMember) {
+                  if (realMember.SubUnit === 'Love') hasLove = true;
+                  else if (realMember.SubUnit === 'Melancholy') hasMelancholy = true;
+                }
+              });
+
+              if (hasLove && !hasMelancholy) {
+                  themeColor = 'var(--color-love)';
+              } else if (hasMelancholy && !hasLove) {
+                  themeColor = 'var(--color-melancholy)';
+              } else if (hasLove && hasMelancholy) {
+                  themeColor = 'var(--color-melancholy-love)'; 
+              }
+            }
+        }
+        return themeColor;
+    }
+
+    function setUnitFilter(unit) {
+      currentUnitFilter = unit;
+      
+      let tagClass = unit === 'All' ? 'tag-all' : 'tag-' + unit.toLowerCase();
+      document.querySelectorAll(".btn-tag").forEach(b => {
+          b.classList.remove("active");
+          if (b.classList.contains(tagClass)) b.classList.add("active");
+      });
+
+      const root = document.documentElement;
+
+      if(unit === 'Melancholy') {
+          root.style.setProperty('--primary', 'var(--color-melancholy)'); root.style.setProperty('--primary-light', '#D8BFD8'); 
+          document.body.classList.remove('fx-flash-love', 'fx-flash-melancholy', 'fx-flash-all'); void document.body.offsetWidth; 
+          document.body.classList.add('fx-flash-melancholy'); updateNavTextColor(false);
+      } else if (unit === 'Love') {
+          root.style.setProperty('--primary', 'var(--color-love)'); root.style.setProperty('--primary-light', '#FFCCCC'); 
+          document.body.classList.remove('fx-flash-love', 'fx-flash-melancholy', 'fx-flash-all'); void document.body.offsetWidth;
+          document.body.classList.add('fx-flash-love'); updateNavTextColor(false);
+      } else {
+          root.style.setProperty('--primary', 'var(--color-melancholy-love)'); root.style.setProperty('--primary-light', '#FFB6C1'); 
+          document.body.classList.remove('fx-flash-love', 'fx-flash-melancholy', 'fx-flash-all'); void document.body.offsetWidth;
+          document.body.classList.add('fx-flash-all'); updateNavTextColor(true); 
+      }
+      
+      renderMembers();
+      renderDisco();
+    }
+
+    function updateNavTextColor(isPink) {
+      document.querySelectorAll(".nav-item").forEach(n => {
+        if(isPink) n.classList.add("black-text");
+        else n.classList.remove("black-text");
+      });
+    }
+
+    function renderDisco() { 
+      const grid = document.getElementById("disco-grid");
+      grid.innerHTML = "";
+      
+      let count = 0;
+      loadedDiscos.forEach((d, idx) => {
+        let themeColor = getCenterUnitColor(d);
+        
+        let unitOfDisco = 'All';
+        if (themeColor === 'var(--color-love)') unitOfDisco = 'Love';
+        else if (themeColor === 'var(--color-melancholy)') unitOfDisco = 'Melancholy';
+        else if (themeColor === 'var(--color-melancholy-love)' || themeColor === 'var(--black)') unitOfDisco = 'All';
+
+        if (unitOfDisco !== currentUnitFilter) return;
+
+        let displayColor = themeColor;
+        if (displayColor === 'var(--black)') displayColor = 'transparent';
+
+        count++;
+        grid.innerHTML += `<div class="item-card" onclick="openDiscoModal(${idx})">
+          <img src="${resolveImage(d.Capa)}" style="border-color: ${displayColor}; border-style: ${displayColor !== 'transparent' ? 'solid' : 'dashed'}; border-width: 3px;">
+          <div class="item-name">${d.Titulo}</div>
+        </div>`;
+      }); 
+
+      if(count === 0) {
+        grid.innerHTML = `<div style="grid-column: 1 / -1; text-align: center; padding: 20px; font-weight: 900; color: #666;">Nenhum lançamento encontrado.</div>`;
+      }
+    }
+
+    function renderMembers() { 
+      const container = document.getElementById("members-container"); 
+      container.innerHTML = ""; 
+      
+      const groups = {}; 
+      loadedMembers.forEach((m, idx) => { 
+        if(['graduada','demitida'].includes(m.Status?.toLowerCase())) return; 
+        const key = currentUnitFilter === 'All' ? (m.Geracao || "1ª Geração") : (m.SubUnit || "Outros"); 
+        
+        if(currentUnitFilter !== 'All' && key !== currentUnitFilter) return;
+        
+        if(!groups[key]) groups[key] = []; 
+        m._idx = idx; 
+        groups[key].push(m); 
+      }); 
+      
+      const orderMap = {"1ª Geração": 0, "2ª Geração": 1, "Love": 2, "Melancholy": 3};
+      const keys = Object.keys(groups).sort((a, b) => (orderMap[a] || 99) - (orderMap[b] || 99)); 
+      
+      keys.forEach(key => { 
+        let themeColor = 'var(--color-melancholy-love)'; let sectionTitle = `<i class="fas fa-star"></i> ${key}`; let textColor = '#fff';
+        if (key === 'Melancholy') { themeColor = 'var(--color-melancholy)'; sectionTitle = `SUB UNIT: ${key}`; } 
+        else if (key === 'Love') { themeColor = 'var(--color-love)'; sectionTitle = `SUB UNIT: ${key}`; } 
+        else if (currentUnitFilter === 'All') { themeColor = 'var(--black)'; textColor = 'var(--color-melancholy-love)'; }
+        
+        container.innerHTML += `<div>
+          <h4 class="section-title" style="margin-top:20px; background:${themeColor}; color:${textColor};">${sectionTitle}</h4>
+          <div class="grid-3">
+            ${groups[key].map(m => `<div class="item-card" onclick='openMemberModal(${m._idx})'>
+              <img src="${resolveImage(m.Foto)}" style="border-color:${themeColor}">
+              <div class="item-name">${m.Nome}</div>
+            </div>`).join('')}
+          </div>
+        </div>`; 
+      }); 
+    }
+
+    function openMemberModal(idx) {
+      const m = loadedMembers[idx]; if(!m) return;
+      const themeColor = m.SubUnit === 'Melancholy' ? 'var(--color-melancholy)' : 'var(--color-love)';
+      document.getElementById("member-modal").style.setProperty('--primary', themeColor);
+      
+      document.getElementById("m-name").innerHTML = m.Nome; 
+      document.getElementById("m-team").innerHTML = `Sub Unit: ${m.SubUnit}`; 
+      document.getElementById("m-cover").src = resolveImage(m.Foto); 
+      document.getElementById("m-bio").innerHTML = m.Perfil || "Sem bio.";
+      
+      let th = []; try { th = JSON.parse(m.Historico_Times || "[]"); } catch(e){}
+      
+      // Ordenação (Mais recente para o mais antigo)
+      const mm = { 'Jan':1, 'Fev':2, 'Mar':3, 'Abr':4, 'Mai':5, 'Jun':6, 'Jul':7, 'Ago':8, 'Set':9, 'Out':10, 'Nov':11, 'Dez':12 };
+      th.sort((a,b) => {
+          let aP=(a.data||'').split(' '), bP=(b.data||'').split(' ');
+          let yA=parseInt(aP[1])||0, yB=parseInt(bP[1])||0;
+          return yA!==yB ? yB-yA : (mm[bP[0]]||0) - (mm[aP[0]]||0);
+      });
+
+      const histEl = document.getElementById("m-history-timeline");
+      if(th.length === 0) histEl.innerHTML = `<div style="color:#000; font-size:0.8rem; font-weight:bold;">Nenhum registro.</div>`;
+      else histEl.innerHTML = th.map(h => `<div class="team-history-item"><span class="team-history-date">${h.data}</span><br>${h.para}</div>`).join('');
+
+      let parts = typeof m.Participacoes === "string" ? JSON.parse(m.Participacoes || "[]") : m.Participacoes; if (!Array.isArray(parts)) parts = []; const discoMap = {}; loadedDiscos.forEach(d => { discoMap[d.Titulo] = d.id || 0; }); parts.sort((a, b) => { const titleA = typeof a === 'string' ? a.split(':')[0] : (a.single || ''); const titleB = typeof b === 'string' ? b.split(':')[0] : (b.single || ''); return (discoMap[titleA] || 99999) - (discoMap[titleB] || 99999); });
+      const partsHTML = parts.map(p => { if (typeof p === 'string') return `<div class="part-card"><div class="part-row" style="font-weight:700;">${p}</div></div>`; const rawTracks = p.tracks || []; const tracks = Array.isArray(rawTracks) ? rawTracks : [rawTracks]; const rows = tracks.map(t => { if (!t) return ""; const labels = t.labels || []; const badges = Array.isArray(labels) ? labels.map(l => { const slug = String(l).toLowerCase(); let cls = ''; let icon = 'fa-tag'; if(slug.includes('a-side') || slug==='aside') { cls='is-aside'; icon='fa-star'; } else if(slug.includes('b-side') || slug==='bside') { cls='is-bside'; icon='fa-compact-disc'; } else if(slug.includes('center')) { cls='is-center'; icon='fa-crown'; } else if(slug.includes('unit')) { cls='is-unit'; icon='fa-users'; } return `<span class="label-brat ${cls}"><i class="fas ${icon}"></i> ${l}</span>`; }).join('') : ''; return `<div class="part-row"><span>${t.title || 'Música'}</span><div>${badges}</div></div>`; }).join(''); return `<div class="part-card"><div class="part-header">${p.single || 'Single'}</div>${rows}</div>`; }).join('');
+      document.getElementById("m-part").innerHTML = partsHTML || '<p style="text-align:center; font-weight:bold; padding:20px;">Nenhuma música registrada.</p>'; switchTabModal('perfil', document.querySelector('#member-modal .tab-btn')); document.getElementById("member-modal").classList.add("active");
+    }
+
+    function openDiscoModal(idx) { 
+      const d = loadedDiscos[idx]; 
+      let themeColor = getCenterUnitColor(d);
+      if (themeColor === 'var(--black)') themeColor = 'var(--color-melancholy-love)'; 
+      document.getElementById("disco-modal").style.setProperty('--primary', themeColor);
+
+      document.getElementById("dm-cover").src = resolveImage(d.Capa); 
+      document.getElementById("dm-title").innerHTML = d.Titulo; 
+      document.getElementById("dm-sub").innerHTML = d.Tipo; 
+      const box = document.getElementById("dm-content"); 
+      box.innerHTML = ""; 
+      
+      let fJSON = getTracklistJSON(d);
+      
+      if (Array.isArray(fJSON)) { 
+          box.innerHTML = `<div class="tabs"><button class="tab-btn active" data-target="t">Tracklist</button><button class="tab-btn" data-target="f">Formação</button></div><div id="pane-t" class="modal-section active" style="padding: 20px;">${renderTracklistFromJSON(fJSON)}</div><div id="pane-f" class="modal-section" style="padding: 20px;">${renderFormationFromJSON(fJSON)}</div>`; 
+      } 
+      initTabsAndAccordion(box); 
+      document.getElementById("disco-modal").classList.add("active"); 
+    }
+    
+    function initTabsAndAccordion(box) { box.querySelectorAll(".tab-btn").forEach(btn => { btn.onclick = () => { box.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active")); box.querySelectorAll(".modal-section").forEach(s => s.classList.remove("active")); btn.classList.add("active"); box.querySelector(`#pane-${btn.dataset.target}`).classList.add("active"); }; }); box.querySelectorAll(".formation-group").forEach(group => { let header = group.querySelector(".formation-header"); if(!header) { const title = group.querySelector(".formation-title"); if(title) { const txt = title.innerText; header = document.createElement("div"); header.className="formation-header"; header.innerHTML = `<div class="formation-title"><span class="formation-idol-icon"><i class="fas fa-skull"></i></span>${txt}</div><i class="fas fa-chevron-down formation-arrow"></i>`; group.insertBefore(header, group.firstChild); title.remove(); } } if(header) header.onclick = () => group.classList.toggle("open"); }); }
+    function renderTracklistFromJSON(list) { if(!list || !list.length) return "<p>Vazio.</p>"; return `<ul class="tracklist">${list.map(item => { let cls='is-bside'; const k = (item.kind||"").toLowerCase(); if(k.includes('a-side')||k.includes('aside')) cls='is-aside'; else if(k.includes('unit')) cls='is-unit'; return `<li><span>${item.name}</span><span class="label-brat ${cls}">${item.kind}</span></li>`; }).join('')}</ul>`; }
+    function renderFormationFromJSON(list) { 
+        if(!list || !list.length) return "<p>Vazio.</p>"; 
+        return list.map(g => `<div class="formation-group"><div class="formation-header"><div class="formation-title"><span class="formation-idol-icon"><i class="fas fa-skull"></i></span>${g.name}</div><i class="fas fa-chevron-down formation-arrow"></i></div><div class="formation-content"><div class="member-grid">${(g.members||[]).map(m => { 
+            const cleanMName = m.name.replace(/<[^>]*>?/gm, '').trim();
+            const real = loadedMembers.find(x => x.Nome.replace(/<[^>]*>?/gm, '').trim() === cleanMName); 
+            const url = real ? resolveImage(real.Foto) : pImg(m.name, "Love"); 
+            return `<div class="member-card-static ${m.isCenter?'is-center':''}"><img src="${url}"><div class="member-info"><h3>${m.name}</h3></div></div>`; 
+        }).join('')}</div></div></div>`).join(''); 
+    }
+    
+    function renderStagesList() { const div = document.getElementById('stages-list'); if(!loadedStages.length) { div.innerHTML = '<div style="text-align:center; font-weight:bold; padding:20px;">Nenhum show registrado.</div>'; return; } div.innerHTML = loadedStages.map(s => `<div class="stage-card" onclick="openStageModal(${s.id})"><img src="${resolveImage(s.Capa)}" class="stage-cover"><div class="stage-info"><div class="stage-title">${s.Titulo}</div><div class="stage-sub">${s.Subtitulo || ''}</div><span class="stage-badge">${s.Status || 'Confirmado'}</span></div></div>`).join(''); }
+    function openStageModal(stageId) { const stage = loadedStages.find(s => s.id == stageId); if(!stage) return; document.getElementById("sm-title").innerHTML = stage.Titulo; document.getElementById("sm-sub").innerHTML = stage.Subtitulo || ''; document.getElementById("sm-cover").src = resolveImage(stage.Capa); const content = document.getElementById("sm-content"); content.innerHTML = `<div class="tabs"><button class="tab-btn active" data-target="s-setlist">Setlist</button><button class="tab-btn" data-target="s-cast">Elenco</button></div><div id="pane-s-setlist" class="modal-section active" style="padding:20px;">${renderSetlist(stage.Setlist)}</div><div id="pane-s-cast" class="modal-section" style="padding:20px;"><div style="text-align:center; font-weight:bold;">Aguardando DB de Elenco.</div></div>`; document.getElementById("stage-modal").classList.add("active"); initTabsAndAccordion(content); }
+    function renderSetlist(text) { if(!text) return ''; return '<div class="setlist-wrap">' + text.split('\n').map(line => { const l = line.trim(); if(!l) return ''; if(l.match(/^M\d+/)) return `<div class="sl-row"><span class="sl-music">${l}</span></div>`; if(l.match(/^MC\d+/)) return `<div class="sl-row"><span class="sl-mc">${l}</span></div>`; if(l.toLowerCase().includes('encore')) return `<div class="sl-header">${l}</div>`; return `<div class="sl-row">${l}</div>`; }).join('') + '</div>'; }
+    
+    function resolveImage(f) { if(!f) return pImg("?", "All"); return (typeof f === "string" ? f : f.publicUrl).replace(/[\[\]"]/g, ""); }
+    function switchTabModal(t, el) { const p = el.parentElement; p.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active")); el.classList.add("active"); const content = p.nextElementSibling.parentElement; content.querySelectorAll(".tab-pane").forEach(tp => tp.classList.remove("active")); content.querySelector("#tab-"+t).classList.add("active"); }
+    function closeModal(id) { document.getElementById(id).classList.remove("active"); }
+
+    init();
+  </script>
+</body>
+</html>
