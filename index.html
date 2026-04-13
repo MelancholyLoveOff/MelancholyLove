@@ -269,7 +269,11 @@
     var supaKey = 'sb_publishable_vF3JVZw3vDrfLM5M6xtw_w_0VJh7uwm';
     var db = window.supabase.createClient(supaUrl, supaKey);
 
-    var loadedMembers = [], loadedDiscos = [], loadedStages = [], loadedNews = [], loadedBanner = null;
+    var loadedMembers = [];
+    var loadedDiscos = [];
+    var loadedStages = [];
+    var loadedNews = [];
+    var loadedBanner = null;
     var currentUnitFilter = 'All';
 
     const pImg = (name, unit) => {
@@ -291,13 +295,39 @@
         ]);
 
         if(memRes.data) loadedMembers = memRes.data;
-        if(discRes.data) loadedDiscos = discRes.data.map(d => ({ ...d, Unit: d.unit || 'All', Tracklist: typeof d.tracklist === 'string' ? d.tracklist : JSON.stringify(d.tracklist || []) }));
-        if(newsRes.data) loadedNews = newsRes.data.map(n => ({ id: n.id, Data: n.data, Categoria: n.categoria, Titulo: n.titulo }));
-        if(stageRes.data) loadedStages = stageRes.data.map(s => ({ id: s.id, Titulo: s.titulo, Subtitulo: s.subtitulo, Status: s.status, Capa: s.capa, Setlist: s.setlist }));
+        
+        if(discRes.data) {
+            loadedDiscos = discRes.data.map(d => ({ 
+                ...d, 
+                Unit: d.unit || 'All', 
+                Tracklist: typeof d.tracklist === 'string' ? d.tracklist : JSON.stringify(d.tracklist || []) 
+            }));
+        }
+        
+        if(newsRes.data) {
+            loadedNews = newsRes.data.map(n => ({ 
+                id: n.id, 
+                Data: n.data, 
+                Categoria: n.categoria, 
+                Titulo: n.titulo 
+            }));
+        }
+        
+        if(stageRes.data) {
+            loadedStages = stageRes.data.map(s => ({ 
+                id: s.id, 
+                Titulo: s.titulo, 
+                Subtitulo: s.subtitulo, 
+                Status: s.status, 
+                Capa: s.capa, 
+                Setlist: s.setlist 
+            }));
+        }
+        
         if(banRes.data) loadedBanner = banRes.data;
 
       } catch (e) {
-        console.warn("Falha no DB.");
+        console.warn("Falha no DB.", e);
       } finally {
         renderDynamicHero();
         renderNews(loadedNews);
@@ -314,16 +344,43 @@
       window.scrollTo(0,0); 
     }
 
-    function renderDynamicHero() { const wrapper = document.getElementById("hero-media-wrapper"); let b = loadedBanner; if(!b) return; document.getElementById("hero-title").innerHTML = b.titulo; document.getElementById("hero-sub").innerHTML = b.subtitulo; if(b.tag) document.getElementById("hero-tag").innerHTML = b.tag; wrapper.innerHTML = `<img class="hero-media" src="${b.url_midia}">`; }
-    function renderNews(list) { document.getElementById("news-list").innerHTML = list.slice(0,10).map(n => { const d = (n.Data||"").split("-"); return `<div class="card" style="display:flex; align-items:center; gap:15px;"><div style="text-align:center; min-width:50px; border-right:3px dashed #000; padding-right:15px;"><b style="font-size:1.5rem; color:var(--primary); -webkit-text-stroke:1px #000;">${d[2]||'00'}</b><br><span style="font-size:0.7rem; font-weight:900;">${d[1]||'00'}/${d[0]||'00'}</span></div><div><span class="tag" style="font-size:0.6rem; padding:2px 5px;">${n.Categoria}</span><h4 style="font-size:0.9rem; text-transform:uppercase;">${n.Titulo}</h4></div></div>`; }).join(''); }
+    function renderDynamicHero() { 
+        const wrapper = document.getElementById("hero-media-wrapper"); 
+        let b = loadedBanner; 
+        if(!b) return; 
+        document.getElementById("hero-title").innerHTML = b.titulo; 
+        document.getElementById("hero-sub").innerHTML = b.subtitulo; 
+        if(b.tag) document.getElementById("hero-tag").innerHTML = b.tag; 
+        wrapper.innerHTML = `<img class="hero-media" src="${b.url_midia}">`; 
+    }
+
+    function renderNews(list) { 
+        document.getElementById("news-list").innerHTML = list.slice(0,10).map(n => { 
+            const d = (n.Data||"").split("-"); 
+            return `
+            <div class="card" style="display:flex; align-items:center; gap:15px;">
+                <div style="text-align:center; min-width:50px; border-right:3px dashed #000; padding-right:15px;">
+                    <b style="font-size:1.5rem; color:var(--primary); -webkit-text-stroke:1px #000;">${d[2]||'00'}</b><br>
+                    <span style="font-size:0.7rem; font-weight:900;">${d[1]||'00'}/${d[0]||'00'}</span>
+                </div>
+                <div>
+                    <span class="tag" style="font-size:0.6rem; padding:2px 5px;">${n.Categoria}</span>
+                    <h4 style="font-size:0.9rem; text-transform:uppercase;">${n.Titulo}</h4>
+                </div>
+            </div>`; 
+        }).join(''); 
+    }
     
     function getTracklistJSON(d) {
         if (!d || !d.Tracklist) return null;
         if (typeof d.Tracklist === 'string') {
             if (d.Tracklist.includes('ctl48-formation-data')) {
-                const temp = document.createElement("div"); temp.innerHTML = d.Tracklist; 
+                const temp = document.createElement("div"); 
+                temp.innerHTML = d.Tracklist; 
                 const jsonEl = temp.querySelector("#ctl48-formation-data"); 
-                if(jsonEl) { try { return JSON.parse(jsonEl.textContent.trim()); } catch(e){ return null; } }
+                if(jsonEl) { 
+                    try { return JSON.parse(jsonEl.textContent.trim()); } catch(e){ return null; } 
+                }
             }
             try { return JSON.parse(d.Tracklist); } catch(e) { return null; }
         }
@@ -342,17 +399,26 @@
       const root = document.documentElement;
 
       if(unit === 'Melancholy') {
-          root.style.setProperty('--primary', 'var(--color-melancholy)'); root.style.setProperty('--primary-light', '#D8BFD8'); 
-          document.body.classList.remove('fx-flash-love', 'fx-flash-melancholy', 'fx-flash-all'); void document.body.offsetWidth; 
-          document.body.classList.add('fx-flash-melancholy'); updateNavTextColor(false);
+          root.style.setProperty('--primary', 'var(--color-melancholy)'); 
+          root.style.setProperty('--primary-light', '#D8BFD8'); 
+          document.body.classList.remove('fx-flash-love', 'fx-flash-melancholy', 'fx-flash-all'); 
+          void document.body.offsetWidth; 
+          document.body.classList.add('fx-flash-melancholy'); 
+          updateNavTextColor(false);
       } else if (unit === 'Love') {
-          root.style.setProperty('--primary', 'var(--color-love)'); root.style.setProperty('--primary-light', '#FFCCCC'); 
-          document.body.classList.remove('fx-flash-love', 'fx-flash-melancholy', 'fx-flash-all'); void document.body.offsetWidth;
-          document.body.classList.add('fx-flash-love'); updateNavTextColor(false);
+          root.style.setProperty('--primary', 'var(--color-love)'); 
+          root.style.setProperty('--primary-light', '#FFCCCC'); 
+          document.body.classList.remove('fx-flash-love', 'fx-flash-melancholy', 'fx-flash-all'); 
+          void document.body.offsetWidth;
+          document.body.classList.add('fx-flash-love'); 
+          updateNavTextColor(false);
       } else {
-          root.style.setProperty('--primary', 'var(--color-melancholy-love)'); root.style.setProperty('--primary-light', '#FFB6C1'); 
-          document.body.classList.remove('fx-flash-love', 'fx-flash-melancholy', 'fx-flash-all'); void document.body.offsetWidth;
-          document.body.classList.add('fx-flash-all'); updateNavTextColor(true); 
+          root.style.setProperty('--primary', 'var(--color-melancholy-love)'); 
+          root.style.setProperty('--primary-light', '#FFB6C1'); 
+          document.body.classList.remove('fx-flash-love', 'fx-flash-melancholy', 'fx-flash-all'); 
+          void document.body.offsetWidth;
+          document.body.classList.add('fx-flash-all'); 
+          updateNavTextColor(true); 
       }
       
       renderMembers();
@@ -374,7 +440,6 @@
       loadedDiscos.forEach((d, idx) => {
         let unitOfDisco = d.Unit || 'All';
         
-        // REGRA ESTRITA: O disco só aparece na aba que corresponde à Unit exata dele.
         if (unitOfDisco !== currentUnitFilter) return;
 
         let displayColor = 'var(--color-melancholy-love)'; 
@@ -382,7 +447,8 @@
         else if (unitOfDisco === 'Melancholy') displayColor = 'var(--color-melancholy)';
         
         count++;
-        grid.innerHTML += `<div class="item-card" onclick="openDiscoModal(${idx})">
+        grid.innerHTML += `
+        <div class="item-card" onclick="openDiscoModal(${idx})">
           <img src="${resolveImage(d.Capa || d.capa)}" style="border-color: ${displayColor}; border-style: solid; border-width: 3px;">
           <div class="item-name">${d.Titulo || d.titulo}</div>
         </div>`;
@@ -413,25 +479,43 @@
       const keys = Object.keys(groups).sort((a, b) => (orderMap[a] || 99) - (orderMap[b] || 99)); 
       
       keys.forEach(key => { 
-        let themeColor = 'var(--color-melancholy-love)'; let sectionTitle = `<i class="fas fa-star"></i> ${key}`; let textColor = '#fff';
-        if (key === 'Melancholy') { themeColor = 'var(--color-melancholy)'; sectionTitle = `SUB UNIT: ${key}`; } 
-        else if (key === 'Love') { themeColor = 'var(--color-love)'; sectionTitle = `SUB UNIT: ${key}`; } 
-        else if (currentUnitFilter === 'All') { themeColor = 'var(--black)'; textColor = 'var(--color-melancholy-love)'; }
+        let themeColor = 'var(--color-melancholy-love)'; 
+        let sectionTitle = `<i class="fas fa-star"></i> ${key}`; 
+        let textColor = '#fff';
         
-        container.innerHTML += `<div>
+        if (key === 'Melancholy') { 
+            themeColor = 'var(--color-melancholy)'; 
+            sectionTitle = `SUB UNIT: ${key}`; 
+        } 
+        else if (key === 'Love') { 
+            themeColor = 'var(--color-love)'; 
+            sectionTitle = `SUB UNIT: ${key}`; 
+        } 
+        else if (currentUnitFilter === 'All') { 
+            themeColor = 'var(--black)'; 
+            textColor = 'var(--color-melancholy-love)'; 
+        }
+        
+        let membersHtml = groups[key].map(m => `
+        <div class="item-card" onclick='openMemberModal(${m._idx})'>
+          <img src="${resolveImage(m.Foto || m.foto)}" style="border-color:${themeColor}">
+          <div class="item-name">${m.Nome || m.nome}</div>
+        </div>`).join('');
+
+        container.innerHTML += `
+        <div>
           <h4 class="section-title" style="margin-top:20px; background:${themeColor}; color:${textColor};">${sectionTitle}</h4>
           <div class="grid-3">
-            ${groups[key].map(m => `<div class="item-card" onclick='openMemberModal(${m._idx})'>
-              <img src="${resolveImage(m.Foto || m.foto)}" style="border-color:${themeColor}">
-              <div class="item-name">${m.Nome || m.nome}</div>
-            </div>`).join('')}
+            ${membersHtml}
           </div>
         </div>`; 
       }); 
     }
 
     function openMemberModal(idx) {
-      const m = loadedMembers[idx]; if(!m) return;
+      const m = loadedMembers[idx]; 
+      if(!m) return;
+      
       const sub = m.SubUnit || m.subunit;
       const themeColor = sub === 'Melancholy' ? 'var(--color-melancholy)' : 'var(--color-love)';
       document.getElementById("member-modal").style.setProperty('--primary', themeColor);
@@ -441,7 +525,11 @@
       document.getElementById("m-cover").src = resolveImage(m.Foto || m.foto); 
       document.getElementById("m-bio").innerHTML = (m.Perfil || m.perfil) || "Sem bio.";
       
-      let th = []; try { th = JSON.parse(m.Historico_Times || m.historico_times || "[]"); } catch(e){}
+      let th = []; 
+      try { 
+          let rawHist = m.Historico_Times || m.historico_times;
+          th = typeof rawHist === 'string' ? JSON.parse(rawHist) : (rawHist || []); 
+      } catch(e){}
       
       const mm = { 'Jan':1, 'Fev':2, 'Mar':3, 'Abr':4, 'Mai':5, 'Jun':6, 'Jul':7, 'Ago':8, 'Set':9, 'Out':10, 'Nov':11, 'Dez':12 };
       th.sort((a,b) => {
@@ -451,10 +539,15 @@
       });
 
       const histEl = document.getElementById("m-history-timeline");
-      if(th.length === 0) histEl.innerHTML = `<div style="color:#000; font-size:0.8rem; font-weight:bold;">Nenhum registro.</div>`;
-      else histEl.innerHTML = th.map(h => `<div class="team-history-item"><span class="team-history-date">${h.data}</span><br>${h.para}</div>`).join('');
+      if(th.length === 0) {
+          histEl.innerHTML = `<div style="color:#000; font-size:0.8rem; font-weight:bold;">Nenhum registro.</div>`;
+      } else {
+          histEl.innerHTML = th.map(h => `
+          <div class="team-history-item">
+              <span class="team-history-date">${h.data}</span><br>${h.para}
+          </div>`).join('');
+      }
 
-      // INTEGRAÇÃO AUTOMÁTICA DE PARTICIPAÇÕES
       let autoParts = [];
       loadedDiscos.forEach(d => {
           let fJSON = getTracklistJSON(d);
@@ -480,7 +573,8 @@
           const rows = p.tracks.map(t => { 
               const badges = t.labels.map(l => { 
                   const slug = String(l).toLowerCase(); 
-                  let cls = 'is-bside'; let icon = 'fa-compact-disc'; 
+                  let cls = 'is-bside'; 
+                  let icon = 'fa-compact-disc'; 
                   if(slug.includes('a-side') || slug==='aside') { cls='is-aside'; icon='fa-star'; } 
                   else if(slug.includes('center')) { cls='is-center'; icon='fa-crown'; } 
                   else if(slug.includes('unit')) { cls='is-unit'; icon='fa-users'; } 
@@ -492,7 +586,8 @@
       }).join('');
       
       document.getElementById("m-part").innerHTML = partsHTML || '<p style="text-align:center; font-weight:bold; padding:20px;">Nenhuma música registrada.</p>'; 
-      switchTabModal('perfil', document.querySelector('#member-modal .tab-btn')); document.getElementById("member-modal").classList.add("active");
+      switchTabModal('perfil', document.querySelector('#member-modal .tab-btn')); 
+      document.getElementById("member-modal").classList.add("active");
     }
 
     function openDiscoModal(idx) { 
@@ -525,31 +620,159 @@
       let fJSON = getTracklistJSON(d);
       
       if (Array.isArray(fJSON)) { 
-          box.innerHTML = `<div class="tabs"><button class="tab-btn active" data-target="t">Tracklist</button><button class="tab-btn" data-target="f">Formação</button></div><div id="pane-t" class="modal-section active" style="padding: 20px;">${renderTracklistFromJSON(fJSON)}</div><div id="pane-f" class="modal-section" style="padding: 20px;">${renderFormationFromJSON(fJSON)}</div>`; 
+          box.innerHTML = `
+          <div class="tabs">
+              <button class="tab-btn active" data-target="t">Tracklist</button>
+              <button class="tab-btn" data-target="f">Formação</button>
+          </div>
+          <div id="pane-t" class="modal-section active" style="padding: 20px;">${renderTracklistFromJSON(fJSON)}</div>
+          <div id="pane-f" class="modal-section" style="padding: 20px;">${renderFormationFromJSON(fJSON)}</div>`; 
       } 
       initTabsAndAccordion(box); 
       document.getElementById("disco-modal").classList.add("active"); 
     }
     
-    function initTabsAndAccordion(box) { box.querySelectorAll(".tab-btn").forEach(btn => { btn.onclick = () => { box.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active")); box.querySelectorAll(".modal-section").forEach(s => s.classList.remove("active")); btn.classList.add("active"); box.querySelector(`#pane-${btn.dataset.target}`).classList.add("active"); }; }); box.querySelectorAll(".formation-group").forEach(group => { let header = group.querySelector(".formation-header"); if(!header) { const title = group.querySelector(".formation-title"); if(title) { const txt = title.innerText; header = document.createElement("div"); header.className="formation-header"; header.innerHTML = `<div class="formation-title"><span class="formation-idol-icon"><i class="fas fa-skull"></i></span>${txt}</div><i class="fas fa-chevron-down formation-arrow"></i>`; group.insertBefore(header, group.firstChild); title.remove(); } } if(header) header.onclick = () => group.classList.toggle("open"); }); }
-    function renderTracklistFromJSON(list) { if(!list || !list.length) return "<p>Vazio.</p>"; return `<ul class="tracklist">${list.map(item => { let cls='is-bside'; const k = (item.kind||"").toLowerCase(); if(k.includes('a-side')||k.includes('aside')) cls='is-aside'; else if(k.includes('unit')) cls='is-unit'; return `<li><span>${item.name}</span><span class="label-brat ${cls}">${item.kind}</span></li>`; }).join('')}</ul>`; }
+    function initTabsAndAccordion(box) { 
+        box.querySelectorAll(".tab-btn").forEach(btn => { 
+            btn.onclick = () => { 
+                box.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active")); 
+                box.querySelectorAll(".modal-section").forEach(s => s.classList.remove("active")); 
+                btn.classList.add("active"); 
+                box.querySelector(`#pane-${btn.dataset.target}`).classList.add("active"); 
+            }; 
+        }); 
+        
+        box.querySelectorAll(".formation-group").forEach(group => { 
+            let header = group.querySelector(".formation-header"); 
+            if(!header) { 
+                const title = group.querySelector(".formation-title"); 
+                if(title) { 
+                    const txt = title.innerText; 
+                    header = document.createElement("div"); 
+                    header.className="formation-header"; 
+                    header.innerHTML = `<div class="formation-title"><span class="formation-idol-icon"><i class="fas fa-skull"></i></span>${txt}</div><i class="fas fa-chevron-down formation-arrow"></i>`; 
+                    group.insertBefore(header, group.firstChild); 
+                    title.remove(); 
+                } 
+            } 
+            if(header) {
+                header.onclick = () => group.classList.toggle("open"); 
+            }
+        }); 
+    }
+
+    function renderTracklistFromJSON(list) { 
+        if(!list || !list.length) return "<p>Vazio.</p>"; 
+        return `<ul class="tracklist">` + list.map(item => { 
+            let cls = 'is-bside'; 
+            const k = (item.kind||"").toLowerCase(); 
+            if(k.includes('a-side') || k.includes('aside')) cls = 'is-aside'; 
+            else if(k.includes('unit')) cls = 'is-unit'; 
+            return `<li><span>${item.name}</span><span class="label-brat ${cls}">${item.kind}</span></li>`; 
+        }).join('') + `</ul>`; 
+    }
+
     function renderFormationFromJSON(list) { 
         if(!list || !list.length) return "<p>Vazio.</p>"; 
-        return list.map(g => `<div class="formation-group"><div class="formation-header"><div class="formation-title"><span class="formation-idol-icon"><i class="fas fa-skull"></i></span>${g.name}</div><i class="fas fa-chevron-down formation-arrow"></i></div><div class="formation-content"><div class="member-grid">${(g.members||[]).map(m => { 
-            const cleanMName = m.name.replace(/<[^>]*>?/gm, '').trim();
-            const real = loadedMembers.find(x => (x.Nome||x.nome).replace(/<[^>]*>?/gm, '').trim() === cleanMName); 
-            const url = real ? resolveImage(real.Foto||real.foto) : pImg(m.name, "Love"); 
-            return `<div class="member-card-static ${m.isCenter?'is-center':''}"><img src="${url}"><div class="member-info"><h3>${m.name}</h3></div></div>`; 
-        }).join('')}</div></div></div>`).join(''); 
+        return list.map(g => {
+            let membersHtml = (g.members||[]).map(m => { 
+                const cleanMName = m.name.replace(/<[^>]*>?/gm, '').trim();
+                const real = loadedMembers.find(x => (x.Nome||x.nome).replace(/<[^>]*>?/gm, '').trim() === cleanMName); 
+                const url = real ? resolveImage(real.Foto||real.foto) : pImg(m.name, "Love"); 
+                return `
+                <div class="member-card-static ${m.isCenter ? 'is-center' : ''}">
+                    <img src="${url}">
+                    <div class="member-info"><h3>${m.name}</h3></div>
+                </div>`; 
+            }).join('');
+            
+            return `
+            <div class="formation-group">
+                <div class="formation-header">
+                    <div class="formation-title"><span class="formation-idol-icon"><i class="fas fa-skull"></i></span>${g.name}</div>
+                    <i class="fas fa-chevron-down formation-arrow"></i>
+                </div>
+                <div class="formation-content">
+                    <div class="member-grid">${membersHtml}</div>
+                </div>
+            </div>`;
+        }).join(''); 
     }
     
-    function renderStagesList() { const div = document.getElementById('stages-list'); if(!loadedStages.length) { div.innerHTML = '<div style="text-align:center; font-weight:bold; padding:20px;">Nenhum show registrado.</div>'; return; } div.innerHTML = loadedStages.map(s => `<div class="stage-card" onclick="openStageModal(${s.id})"><img src="${resolveImage(s.Capa || s.capa)}" class="stage-cover"><div class="stage-info"><div class="stage-title">${s.Titulo || s.titulo}</div><div class="stage-sub">${s.Subtitulo || s.subtitulo || ''}</div><span class="stage-badge">${s.Status || s.status || 'Confirmado'}</span></div></div>`).join(''); }
-    function openStageModal(stageId) { const stage = loadedStages.find(s => s.id == stageId); if(!stage) return; document.getElementById("sm-title").innerHTML = stage.Titulo || stage.titulo; document.getElementById("sm-sub").innerHTML = stage.Subtitulo || stage.subtitulo || ''; document.getElementById("sm-cover").src = resolveImage(stage.Capa || stage.capa); const content = document.getElementById("sm-content"); content.innerHTML = `<div class="tabs"><button class="tab-btn active" data-target="s-setlist">Setlist</button><button class="tab-btn" data-target="s-cast">Elenco</button></div><div id="pane-s-setlist" class="modal-section active" style="padding:20px;">${renderSetlist(stage.Setlist || stage.setlist)}</div><div id="pane-s-cast" class="modal-section" style="padding:20px;"><div style="text-align:center; font-weight:bold;">Aguardando DB de Elenco.</div></div>`; document.getElementById("stage-modal").classList.add("active"); initTabsAndAccordion(content); }
-    function renderSetlist(text) { if(!text) return ''; return '<div class="setlist-wrap">' + text.split('\n').map(line => { const l = line.trim(); if(!l) return ''; if(l.match(/^M\d+/)) return `<div class="sl-row"><span class="sl-music">${l}</span></div>`; if(l.match(/^MC\d+/)) return `<div class="sl-row"><span class="sl-mc">${l}</span></div>`; if(l.toLowerCase().includes('encore')) return `<div class="sl-header">${l}</div>`; return `<div class="sl-row">${l}</div>`; }).join('') + '</div>'; }
+    function renderStagesList() { 
+        const div = document.getElementById('stages-list'); 
+        if(!loadedStages.length) { 
+            div.innerHTML = '<div style="text-align:center; font-weight:bold; padding:20px;">Nenhum show registrado.</div>'; 
+            return; 
+        } 
+        div.innerHTML = loadedStages.map(s => `
+        <div class="stage-card" onclick="openStageModal('${s.id}')">
+            <img src="${resolveImage(s.Capa || s.capa)}" class="stage-cover">
+            <div class="stage-info">
+                <div class="stage-title">${s.Titulo || s.titulo}</div>
+                <div class="stage-sub">${s.Subtitulo || s.subtitulo || ''}</div>
+                <span class="stage-badge">${s.Status || s.status || 'Confirmado'}</span>
+            </div>
+        </div>`).join(''); 
+    }
+
+    function openStageModal(stageId) { 
+        const stage = loadedStages.find(s => s.id == stageId); 
+        if(!stage) return; 
+        
+        document.getElementById("sm-title").innerHTML = stage.Titulo || stage.titulo; 
+        document.getElementById("sm-sub").innerHTML = stage.Subtitulo || stage.subtitulo || ''; 
+        document.getElementById("sm-cover").src = resolveImage(stage.Capa || stage.capa); 
+        
+        const content = document.getElementById("sm-content"); 
+        content.innerHTML = `
+        <div class="tabs">
+            <button class="tab-btn active" data-target="s-setlist">Setlist</button>
+            <button class="tab-btn" data-target="s-cast">Elenco</button>
+        </div>
+        <div id="pane-s-setlist" class="modal-section active" style="padding:20px;">
+            ${renderSetlist(stage.Setlist || stage.setlist)}
+        </div>
+        <div id="pane-s-cast" class="modal-section" style="padding:20px;">
+            <div style="text-align:center; font-weight:bold;">Aguardando DB de Elenco.</div>
+        </div>`; 
+        
+        document.getElementById("stage-modal").classList.add("active"); 
+        initTabsAndAccordion(content); 
+    }
+
+    function renderSetlist(text) { 
+        if(!text) return ''; 
+        let lines = text.split('\n').map(line => { 
+            const l = line.trim(); 
+            if(!l) return ''; 
+            if(l.match(/^M\d+/)) return `<div class="sl-row"><span class="sl-music">${l}</span></div>`; 
+            if(l.match(/^MC\d+/)) return `<div class="sl-row"><span class="sl-mc">${l}</span></div>`; 
+            if(l.toLowerCase().includes('encore')) return `<div class="sl-header">${l}</div>`; 
+            return `<div class="sl-row">${l}</div>`; 
+        }).join('');
+        
+        return `<div class="setlist-wrap">${lines}</div>`; 
+    }
     
-    function resolveImage(f) { if(!f) return pImg("?", "All"); return (typeof f === "string" ? f : f.publicUrl).replace(/[\[\]"]/g, ""); }
-    function switchTabModal(t, el) { const p = el.parentElement; p.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active")); el.classList.add("active"); const content = p.nextElementSibling.parentElement; content.querySelectorAll(".tab-pane").forEach(tp => tp.classList.remove("active")); content.querySelector("#tab-"+t).classList.add("active"); }
-    function closeModal(id) { document.getElementById(id).classList.remove("active"); }
+    function resolveImage(f) { 
+        if(!f) return pImg("?", "All"); 
+        return (typeof f === "string" ? f : f.publicUrl).replace(/[\[\]"]/g, ""); 
+    }
+
+    function switchTabModal(t, el) { 
+        const p = el.parentElement; 
+        p.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active")); 
+        el.classList.add("active"); 
+        
+        const content = p.nextElementSibling.parentElement; 
+        content.querySelectorAll(".tab-pane").forEach(tp => tp.classList.remove("active")); 
+        content.querySelector("#tab-"+t).classList.add("active"); 
+    }
+
+    function closeModal(id) { 
+        document.getElementById(id).classList.remove("active"); 
+    }
 
     init();
   </script>
